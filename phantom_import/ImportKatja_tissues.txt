@@ -1,0 +1,164 @@
+ID, Tissue Name, Assigned Tissue Name
+0,ExternalAir,ExternalAir
+1,	Adrenal left,Gland
+2,	Adrenal right,Gland
+3,	Anterior nasal passage (ET1), Air
+4,	Posterior nasal passage down to larynx (ET2),Air
+5,	Oral mucosa tongue,MucousMembrane
+6,	Oral mucosa lips and cheeks,MucousMembrane
+7,	Trachea,Trachea
+8,	Bronchi,LungInflated
+9,	Blood vessels head,BloodVessel
+10,	Blood vessels trunk,BloodVessel
+11,	Blood vessels arms,BloodVessel
+12,	Blood vessels legs,BloodVessel
+13,	Arm bones:Humeri proximal end cortical bone,BoneCortical
+14,	Arm bones:Humeri upper half spongiosa,BoneCancellous
+15, Arm bones:Humeri upper half medullary cavity,BoneMarrow
+16, Arm bones:Humeri lower half cortical,BoneCortical
+17,	Arm bones:Humeri lower half spongiosa,BoneCancellous
+18,	Arm bones:Humeri lower half medullary cavity,BoneMarrow
+19,	Ulnae and radii cortical,BoneCortical
+20, Ulnae and radii spongiosa,BoneCancellous
+21,	Ulnae and radii medullary cavity,BoneMarrow
+22, Wrists and hand bones cortical,BoneCortical
+23, Wrists and hand bones spongiosa,BoneCancellous
+24,	Clavicles cortical,BoneCortical
+25, Clavicles spongiosa,BoneCancellous
+26,	Cranium cortical,BoneCortical
+27, Cranium spongiosa,BoneCancellous
+28,	Leg bones:Femora upper half cortical,BoneCortical
+29,	Leg bones:Femora upper half spongiosa,BoneCancellous
+30, Leg bones:Femora upper half medullary cavity,BoneMarrow
+31, Leg bones:Femora lower half cortical,BoneCortical
+32, Leg bones:Femora lower half spongiosa,BoneCancellous
+33,	Leg bones:Femora lower half medullary cavity,BoneMarrow
+34,	Leg bones:Tibiae fibulae and patellae cortical,BoneCortical
+35,	Leg bones:Tibiae fibulae and patellae spongiosa,BoneCancellous
+36, Leg bones:Tibiae fibulae and patellae medullary cavity,BoneMarrow
+37,	Ankles and foot bones cortical,BoneCortical
+38, Ankles and foot bones spongiosa,BoneCancellous
+39, Mandible cortical,BoneCortical
+40, Mandible spongiosa,BoneCancellous
+41, Pelvis cortical,BoneCortical
+42,	Pelvis spongiosa,BoneCancellous
+43, Ribs cortical,BoneCortical
+44, Ribs spongiosa,BoneCancellous
+45,	Scapulae cortical,BoneCortical
+46, Scapulae spongiosa,BoneCancellous
+47, Cervical spine cortical,BoneCortical
+48,	Cervical spine spongiosa,BoneCancellous
+49,	Thoracic spine cortical,BoneCortical
+50,	Thoracic spine spongiosa,BoneCancellous
+51, Lumbar spine cortical,BoneCortical
+52, Lumbar spine spongiosa,BoneCancellous
+53,	Sacrum cortical,BoneCortical
+54,	Sacrum spongiosa,BoneCancellous
+55, Sternum cortical,BoneCortical
+56, Sternum spongiosa,BoneCancellous
+57,	Cartilage head,Cartilage
+58,	Cartilage trunk,Cartilage
+59, Cartilage arms,Cartilage
+60, Cartilage legs,Cartilage
+61,	Brain,BrainGreyMatter
+62,	Breast left adipose tissue,BreastFat
+63,	Breast left glandular tissue,Gland
+64,	Breast right adipose tissue,BreastFat
+65,	Breast right glandular tissue,Gland
+66,	Eye lens left,Lens
+67,	Eye bulb left,EyeSclera
+68,	Eye lens right,Lens
+69,	Eye bulb right,EyeSclera
+70, Gall bladder wall,GallBladder
+71,	Gall bladder contents,GallBladderBile
+72, Stomach wall,Stomach
+73,	Stomach contents,StomachContents
+74,	Small intestine wall,SmallIntestine
+75,	Small intestine contents,GIcontents
+76,	Ascending colon wall,Colon
+77,	Ascending colon contents,GIcontents
+78,	Transverse colon wall right,Colon
+79,	Transverse colon contents right,GIcontents
+80,	Transverse colon wall left,Colon
+81,	Transverse colon contents left,GIcontents
+82,	Descending colon wall,Colon
+83,	Descending colon contents,GIcontents
+84, Sigmoid colon wall,Colon
+85,	Sigmoid colon contents,GIcontents
+86,	Rectum wall,Colon
+87,	Heart wall,Heart
+88,	Heart contents (blood),Blood
+89,	Kidney left cortex,Kidney
+90,	Kidney left medulla,Kidney
+91, Kidney left pelvis,Kidney
+92, Kidney right cortex,Kidney
+93, Kidney right medulla,Kidney
+94,	Kidney right pelvis,Kidney
+95,	Liver,Liver
+96,	Lung left blood,Blood
+97,	Lung left tissue,LungInflated
+98,	Lung right blood,Blood
+99,	Lung right tissue,LungInflated
+100,Lymphatic nodes extrathoracic airways,Lymph
+101,Lymphatic nodes thoracic airways,Lymph
+102,Lymphatic nodes head,Lymph
+103,Lymphatic nodes trunk,Lymph
+104,Lymphatic nodes arms,Lymph
+105,Lymphatic nodes legs,Lymph
+106,Muscle head,Muscle
+107,Muscle trunk,Muscle
+108,Muscle arms,Muscle
+109,Muscle legs,Muscle
+110,Oesophagus (wall),Oesophagus
+111,Ovary left,Ovary
+112,Ovary right,Ovary
+113,Pancreas,Pancreas
+114,Pituitary gland,Gland
+115,Prostate,Prostate
+116,Residual tissue head,BodyFluid
+117,Residual tissue trunk,BodyFluid
+118,Residual tissue arms,BodyFluid
+119,Residual tissue legs,BodyFluid
+120,Salivary glands left,Gland
+121,Salivary glands right,Gland
+122,Skin head,SkinWet
+123,Skin trunk,SkinWet
+124,Skin arms,SkinWet
+125,Skin legs,SkinWet
+126,Spinal cord,SpinalCord
+127,Spleen,Spleen
+128,Teeth,Tooth
+129,Testis left,Testis
+130,Testis right,Testis
+131,Thymus,Thymus
+132,Thyroid,Thyroid
+133,Tongue (inner part),Tongue
+134,Tonsils,Lymph
+135,Ureter left,Bladder
+136,Ureter right,Bladder
+137,Urinary bladder wall,Bladder
+138,Urinary bladder contents,Bladder
+139,Uterus / Cervix,Uterus
+140,Air inside body,Air
+141,Skin at top and bottom,SkinWet
+210,Placenta,Cervix
+211,Umbilical cord,BloodVessel
+212,Amniotic fluid,BodyFluid
+213,Fetus Head tissue,Muscle
+214,Fetus cerebrospinal fluid,CerebroSpinalFluid
+215,Fetus Spine,SpinalCord
+220,Fetus Skin,SkinWet
+221,Fetus Trunk,Muscle
+222,Fetus Arms,Muscle
+223,Fetus Legs,Muscle
+224,Fetus Brain,BrainGreyMatter
+225,Fetus Eyes,EyeSclera
+226,Fetus Eye lenses,Lens
+227,Fetus Spinal cord,SpinalCord
+228,Fetus Lungs,LungInflated
+229,Fetus Heart,Heart
+230,Fetus Kidneys,Kidney
+231,Fetus Liver,Liver
+232,Fetus Stomach,Stomach
+233,Fetus Gall bladder,GallBladder
+240,Fetus Cranium,BoneCortical

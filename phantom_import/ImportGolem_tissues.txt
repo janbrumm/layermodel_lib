@@ -1,0 +1,124 @@
+ID, Tissue Name, Assigned Tissue Name
+0,ExternalAir,ExternalAir
+2,	Adipose tissue head,Fat
+3,	Adipose tissue trunk,Fat
+4,	Adipose tissue left arm,Fat
+5,	Adipose tissue right arm,Fat
+6,	Adipose tissue left leg,Fat
+7,	Adipose tissue right leg,Fat
+8,	Adrenals,Gland
+9,	Bladder wall,Bladder
+27,	Brain,BrainGreyMatter
+28,	Anterior nasal passage,Air
+29,	Posterior nasal passage,Air
+30,	Pharynx (nasal part),Air
+31,	Pharynx (oral part),Air
+32,	Larynx,Air
+33,	Bronchial tree,LungInflated
+34,	Eyes,EyeSclera
+35,	Eye lenses,Lens
+36,	Heart,Heart
+38,	Left kidney,Kidney
+39,	Right kidney,Kidney
+41,	Liver,Liver
+43,	Left lung,LungInflated
+44,	Right lung,LungInflated
+46,	Muscle tissue head,Muscle
+47,	Muscle tissue trunk,Muscle
+48,	Muscle tissue left arm,Muscle
+49,	Muscle tissue right arm,Muscle
+50,	Muscle tissue left leg,Muscle
+51,	Muscle tissue right leg,Muscle
+52,	Oesophagus,Oesophagus
+54,	Pancreas,Pancreas
+55,	Penis,Muscle
+135,	Upper left arm bone,BoneCortical
+136,	Lower left arm bones,BoneCortical
+137,	Left hand bones,BoneCortical
+138,	Upper right arm bone,BoneCortical
+139,	Lower right arm bones,BoneCortical
+140,	Right hand bones,BoneCortical
+141,	Clavicles,BoneCortical
+143,	Upper left leg bone,BoneCortical
+144,	Lower left leg bones,BoneCortical
+145,	Left foot bones,BoneCortical
+146,	Upper right leg bone,BoneCortical
+147,	Lower right leg bones,BoneCortical
+148,	Right foot bones,BoneCortical
+149,	Mandible,BoneCortical
+150,	Pelvis,BoneCortical
+152,	Rib 1 left side,BoneCortical
+153,	Rib 2 left side,BoneCortical
+154,	Rib 3 left side,BoneCortical
+155,	Rib 4 left side,BoneCortical
+156,	Rib 5 left side,BoneCortical
+157,	Rib 6 left side,BoneCortical
+158,	Rib 7 left side,BoneCortical
+159,	Rib 8 left side,BoneCortical
+160,	Rib 9 left side,BoneCortical
+161,	Rib 10 left side,BoneCortical
+162,	Rib 11 left side,BoneCortical
+163,	Rib 12 left side,BoneCortical
+164,	Rib 1 right side,BoneCortical
+165,	Rib 2 right side,BoneCortical
+166,	Rib 3 right side,BoneCortical
+167,	Rib 4 right side,BoneCortical
+168,	Rib 5 right side,BoneCortical
+169,	Rib 6 right side,BoneCortical
+170,	Rib 7 right side,BoneCortical
+171,	Rib 8 right side,BoneCortical
+172,	Rib 9 right side,BoneCortical
+173,	Rib 10 right side,BoneCortical
+174,	Rib 11 right side,BoneCortical
+175,	Rib 12 right side,BoneCortical
+176,	Scapulae,BoneCortical
+177,	Skull,BoneCortical
+180,	Cervical vertebra 1,BoneCortical
+181,	Cervical vertebra 2,BoneCortical
+182,	Cervical vertebra 3,BoneCortical
+183,	Cervical vertebra 4,BoneCortical
+184,	Cervical vertebra 5,BoneCortical
+185,	Cervical vertebra 6,BoneCortical
+186,	Cervical vertebra 7,BoneCortical
+188,	Thoracic vertebra 1,BoneCortical
+189,	Thoracic vertebra 2,BoneCortical
+190,	Thoracic vertebra 3,BoneCortical
+191,	Thoracic vertebra 4,BoneCortical
+192,	Thoracic vertebra 5,BoneCortical
+193,	Thoracic vertebra 6,BoneCortical
+194,	Thoracic vertebra 7,BoneCortical
+195,	Thoracic vertebra 8,BoneCortical
+196,	Thoracic vertebra 9,BoneCortical
+197,	Thoracic vertebra 10,BoneCortical
+198,	Thoracic vertebra 11,BoneCortical
+199,	Thoracic vertebra 12,BoneCortical
+201,	Lumbar vertebra 1,BoneCortical
+202,	Lumbar vertebra 2,BoneCortical
+203,	Lumbar vertebra 3,BoneCortical
+204,	Lumbar vertebra 4,BoneCortical
+205,	Lumbar vertebra 5,BoneCortical
+206,	Sacrum,BoneCortical
+207,	Sternum,BoneCortical
+211,	Head skin,SkinWet
+212,	Trunk skin,SkinWet
+214,	Left arm skin,SkinWet
+215,	Right arm skin,SkinWet
+217,	Left leg skin,SkinWet
+218,	Right leg skin,SkinWet
+219,	Small intestine (wall + contents),SmallIntestine
+220,	Spinal cord,SpinalCord
+221,	Spleen,Spleen
+222,	Stomach wall,Stomach
+223,	Teeth,Tooth
+224,	Testes,Testis
+225,	Thymus,Thymus
+226,	Thyroid,Thyroid
+227,	Trachea,Trachea
+242,	Bladder contents,Bladder
+243,	Large intestine contents,GIcontents
+244,	Stomach contents,StomachContents
+245,	Bed + pillow,ExternalAir
+250,	Ascending + transverse colon,Colon
+251,	Descending + sigmoid colon,Colon
+252,	Gall bladder,GallBladder
+253,	Prostate,Prostate

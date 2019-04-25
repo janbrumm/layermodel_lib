@@ -1,0 +1,139 @@
+ID,Tissue,Assigned Tissue
+0,ExternalAir,ExternalAir
+1,Fat head,Fat
+2,Fat trunk,Fat		
+3,Fat left arm			,Fat
+4,Fat right arm		,Fat
+5,Fat left leg			,Fat
+6,Fat right leg		,Fat
+7,Adrenals			,Gland
+8,Bladder wall			,Bladder
+9,Bladder contents		,Bladder
+10,Blood vessels		,BloodVessel
+11,Grey matter		,BrainGreyMatter
+12,White matter		,BrainWhiteMatter
+13,Ventricles		,CerebroSpinalFluid
+14,Adipose tissue (left breast),BreastFat
+15,Adipose tissue (right breast),BreastFat
+16,Glandular tissue (left breast)	,BreastFat
+17,Glandular tissue (right breast),BreastFat
+18,Bronchi				,LungInflated
+19,Ascending colon	,Colon
+20,Transverse colon	,Colon
+21,Descending colon	,Colon
+22,Sigmoid colon	,Colon
+23,Rectum			,Colon
+24,Colon contents		,GIcontents
+25,Eye lenses			,Lens
+26,Eyes				,EyeSclera
+27,Anterior nasal passage	, Air
+28,Posterior nasal passage	, Air
+29,Pharynx (nasal part)	, Air
+30,Pharynx (oral part)	, Air
+31,Larynx			, Air
+32,Gall bladder wall		,GallBladder
+33,Gall bladder contents	,GallBladderBile
+34,Heart				,Heart
+35,Left kidney		,Kidney
+36,Right kidney		,Kidney
+37,Liver				,Liver
+38,Left lung		,LungInflated
+39,Right lung		,LungInflated
+40,Muscle head			,Muscle
+41,Muscle trunk			,Muscle
+42,Muscle left arm			,Muscle
+43,Muscle right arm		,Muscle
+44,Muscle left leg			,Muscle
+45,Muscle right leg		,Muscle
+46,Oesophagus			,Oesophagus
+47,Ovaries				,Ovary
+48,Pancreas			,Pancreas
+49,Prostate				,Prostate
+50,Salivary glands		,Gland
+51,Upper left arm bone	,BoneCortical
+52,Lower left arm bones	,BoneCortical
+53,Left hand bones	,BoneCortical
+54,Upper right arm bone	,BoneCortical
+55,Lower right arm bones	,BoneCortical
+56,Right hand bones	,BoneCortical
+57,Clavicles		,BoneCortical
+58,Upper left leg bone	,BoneCortical
+59,Lower left leg bones	,BoneCortical
+60,Left foot bones	,BoneCortical
+61,Upper right leg bone	,BoneCortical
+62,Lower right leg bones	,BoneCortical
+63,Left foot bones	,BoneCortical
+64,Mandible		,BoneCortical
+65,Pelvis			,BoneCortical
+66,Left rib 1	,BoneCortical
+67,Left rib 2	,BoneCortical
+68,Left rib 3	,BoneCortical
+69,Left rib 4	,BoneCortical
+70,Left rib 5	,BoneCortical
+71,Left rib 6 	,BoneCortical
+72,Left rib 7 	,BoneCortical
+73,Left rib 8 	,BoneCortical
+74,Left rib 9 	,BoneCortical
+75,Left rib 10 	,BoneCortical
+76,Left rib 11 	,BoneCortical
+77,Left rib 12 	,BoneCortical
+78,Right rib 1 	,BoneCortical
+79,Right rib 2 	,BoneCortical
+80,Right rib 3 	,BoneCortical
+81,Right rib 4 	,BoneCortical
+82,Right rib 5 	,BoneCortical
+83,Right rib 6 	,BoneCortical
+84,Right rib 7 	,BoneCortical
+85,Right rib 8 	,BoneCortical
+86,Right rib 9 	,BoneCortical
+87,Right rib 10 	,BoneCortical
+88,Right rib 11 	,BoneCortical
+89,Right rib 12 	,BoneCortical
+90,Scapulae		,BoneCortical
+91,Skull			,BoneCortical
+92,Cervical vertebra 1	,BoneCortical
+93,Cervical vertebra 2 	,BoneCortical
+94,Cervical vertebra 3 	,BoneCortical
+95,Cervical vertebra 4 	,BoneCortical
+96,Cervical vertebra 5 	,BoneCortical
+97,Cervical vertebra 6 	,BoneCortical
+98,Cervical vertebra 7 	,BoneCortical
+99,Thoracic vertebra 1 	,BoneCortical
+100,Thoracic vertebra 2 	,BoneCortical
+101,Thoracic vertebra 3 	,BoneCortical
+102,Thoracic vertebra 4 	,BoneCortical
+103,Thoracic vertebra 5 	,BoneCortical
+104,Thoracic vertebra 6 	,BoneCortical
+105,Thoracic vertebra 7 	,BoneCortical
+106,Thoracic vertebra 8 	,BoneCortical
+107,Thoracic vertebra 9 	,BoneCortical
+108,Thoracic vertebra 10 	,BoneCortical
+109,Thoracic vertebra 11 	,BoneCortical
+110,Thoracic vertebra 12 	,BoneCortical
+111,Lumbar vertebra 1	,BoneCortical
+112,Lumbar vertebra 2 	,BoneCortical
+113,Lumbar vertebra 3 	,BoneCortical
+114,Lumbar vertebra 4 	,BoneCortical
+115,Lumbar vertebra 5 	,BoneCortical
+116,Sacrum		,BoneCortical
+117,Sternum			,BoneCortical
+118, Skin head			,SkinWet
+119, Skin trunk			,SkinWet
+120, Skin left arm			,SkinWet
+121, Skin right arm		,SkinWet
+122, Skin left leg			,SkinWet
+123, Skin right leg		,SkinWet
+124,Small intestine wall	,SmallIntestine
+125,	Small intestine contents	,GIcontents
+126,	Spinal cord			,SpinalCord
+127,	Spleen				,Spleen
+128,	Stomach wall		,Stomach
+129,	Stomach contents	,StomachContents
+130,	Teeth				,Tooth
+131,	Testes				,Testis
+132,	Thymus				,Thymus
+133,	Thyroid				,Thyroid
+134,	Tongue				,Tongue
+135,	Trachea				,Trachea
+136,	Uterus				,Uterus
+137,	Patient table			,ExternalAir

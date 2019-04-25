@@ -1,0 +1,67 @@
+ID, Tissue Name, Assigned Tissue Name
+0,ExternalAir,ExternalAir
+1,	Adipose tissue arms,Fat
+2,	Adipose tissue rest of body,Fat
+3,	Adrenals,Gland
+4,	Bladder wall,Bladder
+5,	Bladder contents,Bladder
+6,	Blood vessels in arms,BloodVessel
+7,	Blood vessels in rest of body,BloodVessel
+8,	Arm bones,BoneCortical
+9,	Leg bones,BoneCortical
+10,	Bones in rest of body,BoneCortical
+11,	Brain,BrainGreyMatter
+12,	Breast (adipose tissue), BreastFat 
+13,	Breast (glandular tissue), Gland
+14,	Bronchi,LungInflated
+15,	Cartilage in arms,Cartilage
+16,	Cartilage in rest of body,Cartilage
+17,	Caecum,Colon
+18,	Ascending colon,Colon
+19,	Transverse colon,Colon
+20,	Descending colon,Colon
+21,	Sigmoid colon,Colon
+22,	Rectum,Colon
+23,	Caecum contents,GIcontents
+24,	Ascending colon contents,GIcontents
+25,	Transverse colon contents,GIcontents
+26,	Descending colon contents,GIcontents
+27,	Sigmoid colon contents,GIcontents
+28,	Rectum contents,GIcontents
+29,	Eye lenses,Lens
+30,	Eyes,LensNucleus
+31,	Anterior nasal passage (ET1),Air
+32,	Posterior nasal passage down to larynx (ET2),Air
+33,	Gall bladder wall,GallBladder
+34,	Gall bladder contents,GallBladderBile
+35,	Heart wall, Heart
+36, Heart contents (blood),Blood
+37,	Kidneys, Kidney
+38,	Liver, Liver
+39,	Lungs, LungInflated
+40,	Muscle in arms,Muscle
+41,	Muscle in rest of body,Muscle
+42,	Oesophagus,Oesophagus
+43,	Ovaries,Ovary
+44,	Pancreas,	Pancreas
+45,	Prostate,	Prostate
+46,	Salivary glands, Gland
+47,	Skin at arms, SkinWet
+48,	Skin at rest of body, SkinWet
+49,	Duodenum,Duodenum
+50,	Ileum,SmallIntestine
+51,	Duodenum contents,GIcontents
+52, 	Ileum contents,GIcontents
+53,	Spinal cord,SpinalCord
+54,	Spleen, Spleen
+55,	Stomach wall, Stomach
+56,	Stomach contents,StomachContents
+57,	Teeth, Tooth
+58,	Testes, Testis
+59,	Thymus, Thymus
+60,	Thyroid, Thyroid
+61,	Tongue, Tongue
+62,	Trachea, Trachea
+63,	Ureters, Muscle
+64,	Uterus, Uterus
+65,	Patient table, ExternalAir
