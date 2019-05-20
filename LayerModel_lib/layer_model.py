@@ -621,7 +621,7 @@ class LayerModel:
         return capacity
 
     @staticmethod
-    def create_from_dict(layer: dict, tissue_properties: DielectricProperties=TissueProperties()) \
+    def create_from_dict(layers: list, tissue_properties: DielectricProperties = TissueProperties()) \
             -> 'LayerModel':
         """
         Create a layer model from the data specified in the two dicts layer and source_layer.
@@ -629,8 +629,9 @@ class LayerModel:
         This function needs Python > 3.6 as it relies on the fact the a dict is stored in the order it was defined.
         See https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-compactdict for details.
 
-        :param layer:   A dictionary containing the tissue name as key and the thickness of that tissue in mm as value.
-                        An example dict: {'Air': None, 'Fat': 200, 'TX': None, 'Muscle': 10, 'RX': None}
+        :param layers:   A list containing a dictionary for each layer.
+                        The  tissue name as key and the thickness of that tissue in mm as value for each dictionary.
+                        An example list: [{'Air': None}, {'Fat': 200}, {'TX': None}, {'Muscle': 10}, {'RX': None}]
                           - The first entry is the tissue that is used for the load impedance calculation of the
                             source impedance
                           - Then all tissues between the first and the TX location appear.
@@ -660,40 +661,45 @@ class LayerModel:
         source_depth_list_mm = []
         first = True  # first run of for loop
         adding_source_tissues = True  # the dict always starts with the source tissues
+        found_receiver = False
+        for layer in layers:
+            for (tissue, thickness) in layer.items():
 
-        for (tissue, thickness) in layer.items():
-
-            # first entry is the load impedance for the source impedance calculation
-            if first:
-                if thickness is not None:
-                    raise ValueError('The thickness of the first entry in layer has to be None.')
-                else:
-                    lm.source_impedance_load_tissue = np.array(tissue_properties.get_id_for_name(tissue))
-                    first = False
-                    continue
-            else:
-                # encountered TX position source tissues finished
-                if tissue == 'TX':
-                    if thickness is None:
-                        adding_source_tissues = False
+                # first entry is the load impedance for the source impedance calculation
+                if first:
+                    if thickness is not None:
+                        raise ValueError('The thickness of the first entry in layer has to be None.')
+                    else:
+                        lm.source_impedance_load_tissue = np.array(tissue_properties.get_id_for_name(tissue))
+                        first = False
                         continue
-                    else:
-                        raise ValueError('The thickness of the "TX" entry in layer has to be None.')
-
-                # RX reached break the loop
-                if tissue == 'RX':
-                    if thickness is None:
-                        break
-                    else:
-                        raise ValueError('The thickness of the "RX" entry in layer has to be None.')
-
-                # add the tissues to their respective list
-                if adding_source_tissues:
-                    source_layer_list.append(tissue)
-                    source_depth_list_mm.append(thickness)
                 else:
-                    layer_list.append(tissue)
-                    depth_list_mm.append(thickness)
+                    # encountered TX position source tissues finished
+                    if tissue == 'TX':
+                        if thickness is None:
+                            adding_source_tissues = False
+                            continue
+                        else:
+                            raise ValueError('The thickness of the "TX" entry in layer has to be None.')
+
+                    # RX reached break the loop
+                    if tissue == 'RX':
+                        if thickness is None:
+                            found_receiver = True
+                            break
+                        else:
+                            raise ValueError('The thickness of the "RX" entry in layer has to be None.')
+
+                    # add the tissues to their respective list
+                    if adding_source_tissues:
+                        source_layer_list.append(tissue)
+                        source_depth_list_mm.append(thickness)
+                    else:
+                        layer_list.append(tissue)
+                        depth_list_mm.append(thickness)
+
+            if found_receiver:
+                break
         else:
             logging.warning("layer did not contain an 'RX' entry at the end. It should for completeness.")
 
