@@ -1,7 +1,7 @@
 name: LayerModel_lib
 channels:
+  - defaults
   - anaconda
-  - conda-forge
 dependencies:
   - matplotlib
   - networkx
@@ -11,8 +11,8 @@ dependencies:
   - python
   - scikit-learn
   - scipy
-  - texttable
   - pip:
+    - texttable
     - opencv-python
 
 
