@@ -169,8 +169,7 @@ class SimulationScenario:
                 self._load_scenario()
                 logging.info('Scenario loaded..')
             else:
-                logging.warning('Scenario %s not found in %s.' % (self.filename, self.path))
-                logging.warning("Created a new and empty scenario!")
+                raise FileNotFoundError('Scenario %s not found in %s.' % (self.filename, self.path))
         else:
             raise ValueError('task has to be either "load" or "create"')
 
