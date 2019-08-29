@@ -495,7 +495,7 @@ class SimulationScenario:
         if len(r_list) > 0:
             return r_list[0]
         else:
-            raise ValueError("No result found.")
+            raise ValueError("No result found for %s." % str(kwargs))
 
     @staticmethod
     def list_all_scenarios(model_name: Optional[str]=None,
