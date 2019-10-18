@@ -341,8 +341,10 @@ class LayerModel:
                           f_start: float = 0.0,
                           f_end: float = 10e9,
                           n_samples: int = 2048,
-                          field_type: str = 'E',
-                          direction: str = 'start->end')\
+                          field_type: str = 'S21',
+                          direction: str = 'start->end',
+                          radiation_loss: str = None,
+                          free_space_loss_distance: float = None)\
             -> Optional[Tuple[np.ndarray, np.ndarray]]:
         """
         Calculate the transfer function for either the electric or magnetic field at n equidistant frequency points
@@ -350,9 +352,15 @@ class LayerModel:
         :param float f_start:      lower frequency
         :param float f_end:        higher frequency
         :param int n_samples:   number of evaluation points
-        :param str field_type:  Either 'E' for electric field (default) or 'H' for magnetic field.
+        :param str field_type:  By default this is 'S21', can also be 'E' for electric field  or 'H' for magnetic field.
         :param direction:   sets the direction of the transfer function, either from startpoint to endpoint or
                             vice versa. Can either be 'start->end' or 'end->start'
+        :param radiation_loss:  Select how to calculate the additional radiation loss that is added to the transfer
+                                functions. Possible values are: 'air' (assume speed of light in free space) or
+                                'avg_tau' (compute speed of light from group delay of transfer function).
+        :param free_space_loss_distance: if not set to None the free space loss for the distance given here in m,
+                                         will be included in the transfer function (works only for S21). Just
+                                         kept for backwards compatibility.
         :return:
         """
         # generate the frequency values
@@ -402,6 +410,27 @@ class LayerModel:
             if direction == 'end->start':
                 raise ValueError("Direction can only be 'start->end' for computation of S21.")
             transfer_function, f_theoretic = self.S21(f_start=f_start, f_end=f_end, n_samples=n_samples)
+
+            c0 = 299792458  # m/s in free space!
+            c = None
+            if radiation_loss == 'air':
+                c = c0
+                d = self.distance
+            elif radiation_loss == 'avg_tau':
+                # determine speed of light by calculating average speed of light from group delay
+                tau_g = np.mean(- np.gradient(np.unwrap(np.angle(transfer_function.flat)), f_theoretic.flat)
+                                / (2 * np.pi))
+                c = self.distance / tau_g
+                d = self.distance
+
+            if radiation_loss is None and free_space_loss_distance is not None:
+                c = c0
+                d = free_space_loss_distance
+
+            # c is only not None if some additional losses need to be added.
+            if c is not None:
+                wavelength = c / f_theoretic
+                transfer_function = (wavelength / (4 * np.pi * d)) * transfer_function
         else:
             raise ValueError("'field_type' can only be 'S21', 'E' or 'H'")
 
@@ -507,8 +536,8 @@ class LayerModel:
             # as long as we compute the impulse response in the passband
             impulse_response = np.fft.irfft(transfer_function, axis=0)
         else:
-            # For equivalent baseband we need to take the IFFT, but first reorder the transfer function, such that it
-            # is symmetric to the origin.
+            # For equivalent baseband we need to take the IFFT, but first reorder the transfer function, such that the
+            # zero frequency component is in tf_BB[0].
             tf_BB = np.fft.ifftshift(transfer_function)
             impulse_response = np.fft.ifft(tf_BB, axis=0)
 
