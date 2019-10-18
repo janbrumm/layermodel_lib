@@ -169,8 +169,7 @@ class SimulationScenario:
                 self._load_scenario()
                 logging.info('Scenario loaded..')
             else:
-                logging.warning('Scenario %s not found in %s.' % (self.filename, self.path))
-                logging.warning("Created a new and empty scenario!")
+                raise FileNotFoundError('Scenario %s not found in %s.' % (self.filename, self.path))
         else:
             raise ValueError('task has to be either "load" or "create"')
 
@@ -496,7 +495,7 @@ class SimulationScenario:
         if len(r_list) > 0:
             return r_list[0]
         else:
-            raise ValueError("No result found.")
+            raise ValueError("No result found for %s." % str(kwargs))
 
     @staticmethod
     def list_all_scenarios(model_name: Optional[str]=None,
