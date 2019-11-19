@@ -472,14 +472,14 @@ class LayerModel:
 
         return S21, f_theoretic
 
-    def impulse_response(self, f_sample: float=20e9,
-                         n_samples: int=2049,
-                         normalize_energy: bool=False,
-                         truncation_percentage: float=1,
-                         normalize_delay: str='none',
-                         threshold_dB: float=30,
-                         direction: str='start->end',
-                         equivalent_baseband: Dict=None,
+    def impulse_response(self, f_sample: float = 20e9,
+                         n_samples: int = 2049,
+                         normalize_energy: bool = False,
+                         truncation_percentage: float = 1,
+                         normalize_delay: str = 'none',
+                         threshold_dB: float = 30,
+                         direction: str = 'start->end',
+                         equivalent_baseband: Dict = None,
                          precalculated_S21_f: Tuple = None) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate the impulse response for this LayerModel with the given sampling rate for
@@ -589,12 +589,12 @@ class LayerModel:
 
         return impulse_response, t
 
-    def path_loss(self, f_start: float=3.1e9, f_end: float=4.8e9, n_samples: int=1024,
-                  precalculated_S21_f: Tuple=None) -> float:
+    def path_loss(self, f_start: float = 3.1e9, f_end: float = 4.8e9, n_samples: int = 1024,
+                  precalculated_S21_f: Tuple = None, **kwargs) -> float:
         """
         Calculate the path loss in the frequency band between f_start and f_end using n_samples.
         It is assumed for this function that the transmit power spectral density is uniformly distributed
-        between f_start and f_end.
+        between f_start and f_end. All **kwargs will be passed to self.transfer_function().
 
         :param float f_start:     lower frequency
         :param float f_end:       higher frequency
@@ -606,7 +606,7 @@ class LayerModel:
         bandwidth = f_end - f_start
 
         if precalculated_S21_f is None:
-            S21, f = self.S21(f_start=f_start, f_end=f_end, n_samples=n_samples)
+            S21, f = self.transfer_function(f_start=f_start, f_end=f_end, n_samples=n_samples, **kwargs)
         else:
             (S21, f) = precalculated_S21_f
 
@@ -616,11 +616,12 @@ class LayerModel:
         return path_loss
 
     def channel_capacity(self, noise_power_density: float, transmit_power: float,
-                         f_start: float=3.1e9, f_end: float=4.8e9, n_samples: int=1024,
-                         precalculated_S21_f: Tuple = None) -> float:
+                         f_start: float = 3.1e9, f_end: float = 4.8e9, n_samples: int = 1024,
+                         precalculated_S21_f: Tuple = None, **kwargs) -> float:
         """
         Calculate the channel capacity for a real channel (e.g. UWB) for a rectangular PSD of the transmit signal
-        in the range of f_start to f_end calculated using n_samples
+        in the range of f_start to f_end calculated using n_samples.
+        All **kwargs will be passed to self.transfer_function().
 
         :param noise_power_density: The power spectral density of the noise
         :param float transmit_power: the total transmit power that is then equally distributed in the bandwidth
@@ -635,7 +636,7 @@ class LayerModel:
         bandwidth = f_end - f_start
 
         if precalculated_S21_f is None:
-            S21, f = self.S21(f_start=f_start, f_end=f_end, n_samples=n_samples)
+            S21, f = self.transfer_function(f_start=f_start, f_end=f_end, n_samples=n_samples, **kwargs)
         else:
             (S21, f) = precalculated_S21_f
 
