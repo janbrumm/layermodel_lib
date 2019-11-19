@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/191758079.svg)](https://zenodo.org/badge/latestdoi/191758079)
+
+
 # LayerModel_lib - A Python Toolkit to Compute the Transmission Behaviour of Plane Electromagnetic Waves Through Human Tissue
 
 ## Introduction and Motivation
@@ -21,7 +24,7 @@ This code is distributed under [MIT license](LICENSE). When using this code or p
 please cite this repository as:
 
 [Bru19] J.-C. Brumm, "LayerModel_lib. A Python toolkit to compute the transmission behaviour of plane 
-electromagnetic waves through human tissue." 2019. [Online]. Available: https://collaborating.tuhh.de/int/in-body/LayerModel_lib
+electromagnetic waves through human tissue." DOI: 10.5281/zenodo.3507610 
 
 ## Installation and Requirements
 1. Download and install at least Python 3.6
