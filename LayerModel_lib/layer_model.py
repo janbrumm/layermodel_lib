@@ -429,7 +429,7 @@ class LayerModel:
 
             # c is only not None if some additional losses need to be added.
             if c is not None:
-                wavelength = c / f_theoretic
+                wavelength = c / f
                 transfer_function = (wavelength / (4 * np.pi * d)) * transfer_function
         else:
             raise ValueError("'field_type' can only be 'S21', 'E' or 'H'")

@@ -156,9 +156,9 @@ class VoxelModel:
                 pickle.dump(self.__dict__, f)
 
     def add_voxel_data(self, short_name: str, name: str, model: np.ndarray, outer_shape: Dict,
-                       tissue_names: Optional[List[str]]=None,
-                       mask: Optional[Dict]=None,
-                       tissue_mapping: Optional[np.ndarray]=None):
+                       tissue_names: Optional[List[str]] = None,
+                       mask: Optional[Dict] = None,
+                       tissue_mapping: Optional[np.ndarray] = None):
         """
         Add the model in model to the self.models dictionary of all models derived from the original model.
 
@@ -183,7 +183,7 @@ class VoxelModel:
 
             self.models[short_name] = VoxelModelData(name, model, outer_shape, tissue_names, mask, tissue_mapping)
 
-    def export_to_CST(self, model_type: str, path: str=""):
+    def export_to_CST(self, model_type: str, path: str = ""):
         """
         Export the specified model_type to a file format suitable for import in CST Microwave Studio.
         :param path:        Path to the location where the model shall be stored at.
@@ -306,7 +306,7 @@ class VoxelModel:
         return self.models[model_type].tissue_names[tissue_id]
 
     def tissue_finding_3D(self, startpoint: Coordinate, endpoint: Coordinate, *,
-                          return_load_tissue: bool=False, model_type: str='trunk') -> Dict:
+                          return_load_tissue: bool = False, model_type: str = 'trunk') -> Dict:
         """
         Returns all the tissues and the corresponding thickness that can be found
         on the line between startpoint and endpoint in the VoxelModel.
@@ -563,7 +563,8 @@ class VoxelModel:
         return new_model
 
     def get_random_startpoints(self, model_type: str, tissue_type: Union[int, str],
-                               number_of_startpoints: int=1000, min_distance: Optional[float]=4) -> List[Coordinate]:
+                               number_of_startpoints: int = 1000, min_distance: Optional[float] = 4)\
+            -> List[Coordinate]:
         """
         Determines number_of_startpoints randomly inside the tissue_type for the given voxel model type.
         Each startpoint has a minimum distance min_distance to all other startpoints.
@@ -612,8 +613,8 @@ class VoxelModel:
 
         return return_list
 
-    def get_random_endpoints(self, model_type: str, number_of_endpoints: int=1000,
-                             min_distance: Optional[float]=None) -> List[Coordinate]:
+    def get_random_endpoints(self, model_type: str, number_of_endpoints: int = 1000,
+                             min_distance: Optional[float] = None) -> List[Coordinate]:
         """
         Draw number_of_endpoints endpoints from the model_type and return them as List[Coordinate].
         :param model_type: The model type to use
@@ -628,19 +629,33 @@ class VoxelModel:
                           (model_type, self.name))
 
     def show_3d_model(self, model_type: str,
-                      show_endpoints: Optional[bool]=False,
-                      show_clusters: Optional[bool]=False,
-                      colored_endpoint_indices: List[Tuple]=None,
-                      z_min_limit: float=None, z_max_limit: float=None) -> Tuple:
+                      show_endpoints: Optional[bool] = False,
+                      endpoint_color: Tuple = (0.9255, 0.4313, 0, 0.8),
+                      show_clusters: Optional[bool] = False,
+                      colored_endpoint_indices: List[Tuple] = None,
+                      colored_surf3d_indices: List[Tuple] = None,
+                      show_surf3d_indices: bool = False,
+                      x_min_limit: float = None, x_max_limit: float = None,
+                      y_min_limit: float = None, y_max_limit: float = None,
+                      z_min_limit: float = None, z_max_limit: float = None) -> Tuple:
         """
         Open a plot showing the 3D model of the model_type given.
 
         :param str model_type: model type that is to be plotted, e.g. 'trunk'
         :param bool show_endpoints: if set to True the endpoint vertices are coloured
+        :param endpoint_color: Color used for the endpoints if show_endpoints is True
         :param bool show_clusters: if set to True the 16 clusters are shown with different colours
         :param List[Tuple] colored_endpoint_indices: List of endpoint indices that should be colored. Each list entry
-                                                     is a tuple (color, list of indices). This overrides the setting of
-                                                     show_clusters and show_endpoints.
+                                                     is a tuple (color, hatch_pattern, list of indices).
+                                                     The indices are taken from vm.models['trunk'].endpoints_abdomen.
+                                                     This overrides the setting of show_clusters and show_endpoints.
+        :param colored_surf3d_indices:  same as 'colored_endpoint_indices' only that indices into
+                                        model['trunk'].surface_3d are given.
+        :param show_surf3d_indices: Show the index of each surface patch
+        :param x_max_limit: maximum x value to plot
+        :param x_min_limit: minimum x value to plot
+        :param y_max_limit: maximum y value to plot
+        :param y_min_limit: minimum y value to plot
         :param z_max_limit: maximum z value to plot
         :param z_min_limit: minimum z value to plot
         :return:
@@ -666,8 +681,16 @@ class VoxelModel:
                              if index in indices]
                 colored_endpoints.append((color, hatch, endpoints))
 
+        # generate a list of all surface_3d elements that are supposed to be colored
+        colored_surf3d = []
+        if colored_surf3d_indices is not None:
+            for (color, hatch, indices) in colored_surf3d_indices:
+                endpoints = [Coordinate(e['centroid']) for (index, e) in enumerate(self.models['trunk'].surface_3d)
+                             if index in indices]
+                colored_surf3d.append((color, hatch, endpoints))
+
         # the default face color:
-        default_face_color = (1, 1, 1, 1)
+        default_face_color = (1, 1, 1, 0.5)
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -678,7 +701,7 @@ class VoxelModel:
         x_max, y_max, z_max = [0] * 3
 
         # plot the surface:
-        for s in self.models[model_type].surface_3d:
+        for (surf3d_idx, s) in enumerate(self.models[model_type].surface_3d):
             verts = s['verts']
             centroid = s['centroid']
 
@@ -698,6 +721,14 @@ class VoxelModel:
                     z_max = np.max(v[:, 2])
                 if np.min(v[:, 2]) < z_min:
                     z_min = np.min(v[:, 2])
+                if x_max_limit is not None and np.min(v[:, 0]) > x_max_limit:
+                    patch_out_of_z_limits = True
+                if x_min_limit is not None and np.max(v[:, 0]) < x_min_limit:
+                    patch_out_of_z_limits = True
+                if y_max_limit is not None and np.min(v[:, 1]) > y_max_limit:
+                    patch_out_of_z_limits = True
+                if y_min_limit is not None and np.max(v[:, 1]) < y_min_limit:
+                    patch_out_of_z_limits = True
                 if z_max_limit is not None and np.min(v[:, 2]) > z_max_limit:
                     patch_out_of_z_limits = True
                 if z_min_limit is not None and np.max(v[:, 2]) < z_min_limit:
@@ -711,8 +742,8 @@ class VoxelModel:
             # colour the patches which are endpoints
             if show_endpoints:
                 endpoints_abdomen = np.array(self.models['trunk'].endpoints_abdomen)
-                if centroid.tolist() in endpoints_abdomen.tolist():
-                    surf.set_facecolor((0.9255, 0.4313, 0, 0.8))
+                if Coordinate(centroid) in self.models['trunk'].endpoints_abdomen:
+                    surf.set_facecolor(endpoint_color)
                 else:
                     surf.set_facecolor(default_face_color)
             # colour the endpoint-patches depending on their cluster
@@ -743,6 +774,34 @@ class VoxelModel:
                 if not found_one:
                     surf.set_facecolor(default_face_color)
 
+            if colored_surf3d_indices is not None:
+                found = 0
+                color_list = []
+                for (color, hatch, endpoints) in colored_surf3d:
+                    if Coordinate(centroid) in endpoints:
+                        hatch_temp = surf.get_hatch()
+                        hatch_temp = hatch if hatch_temp is None else hatch_temp + hatch
+                        surf.set_facecolor(color)
+                        surf.set_alpha(1)
+                        surf.set_hatch(hatch_temp)
+                        print('set color to %s at endpoint %s' % (str(color), str(Coordinate(centroid))))
+                        found += 1
+                        color_list.append(color)
+
+                if found == 2:
+                    verts = [verts[0][((1, 0, 3),)], verts[0][1:4]]
+                    surf = Poly3DCollection(verts)
+                    surf.set_facecolor(color_list)
+                elif found > 2:
+                    logging.warning("More than 2 colors per patch are currently not supported.")
+
+            if show_surf3d_indices:
+                c = surf.get_facecolor()
+                c[0][3] = 0.5
+                surf.set_facecolor(c)
+                ax.text(centroid[0], centroid[1], centroid[2], "%d" % surf3d_idx, None, horizontalalignment='center',
+                        fontsize='x-small')
+
             surf.set_edgecolor('k')
             ax.add_collection3d(surf)
             ax.plot(np.array([centroid[0]]), np.array([centroid[1]]), np.array([centroid[2]]), '.',
@@ -760,7 +819,7 @@ class VoxelModel:
         ax.set_axis_off()
         return fig, ax
 
-    def create_3d_model(self, model_type: str, patch_size: Tuple[float, float], patches: Optional[List]=None,
+    def create_3d_model(self, model_type: str, patch_size: Tuple[float, float], patches: Optional[List] = None,
                         coordinates: Optional[np.ndarray] = None):
         """
         Create a 3D discretized surface model of the given model_type. This should be a model that contains only one
@@ -850,7 +909,7 @@ class VoxelModel:
         return discrete_surface
 
     def determine_patches(self, model_type: str,
-                          patch_size: Tuple[float, float], coordinates: Optional[np.ndarray]=None)\
+                          patch_size: Tuple[float, float], coordinates: Optional[np.ndarray] = None)\
             -> Tuple[np.ndarray, List]:
         """
         Map all the coordinates to unique patches of the given size in mm. It is assumed that the coordinates

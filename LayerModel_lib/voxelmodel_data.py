@@ -8,6 +8,8 @@
 # Licensed under MIT license.
 #
 import numpy as np
+import logging
+
 from typing import List, Dict, Optional, Tuple, Union
 from LayerModel_lib.tissue_properties import TissueProperties
 from LayerModel_lib.coordinate import Coordinate
@@ -170,4 +172,24 @@ class VoxelModelData:
 
         return Coordinate(index * scaling)
 
+    def map_endpoints_to_surf3d_index(self, endpoints: List) -> List:
+        """
+        Map the given ccordinates in mm to the index of the nearest discrete surface element of the model
 
+        :param endpoints: A list of coordinates in mm
+        :return:
+        """
+        endpoint_index_list = []
+        # map the points to the closest ones on the discrete surface of the visible human
+        for e in endpoints:
+            min_dist = 1e6
+            min_index = 0
+            for (index, s) in enumerate(self.surface_3d):
+                dist = np.linalg.norm(np.abs(s['centroid'] - e))
+                if dist < min_dist:
+                    min_index = index
+                    min_dist = dist
+            logging.info('%s -> %s , d = %2.2f' % (str(self.surface_3d[min_index]['centroid']), str(e), min_dist))
+            endpoint_index_list.append(min_index)
+
+        return endpoint_index_list

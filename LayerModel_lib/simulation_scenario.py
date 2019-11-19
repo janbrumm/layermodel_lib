@@ -115,17 +115,18 @@ class SimulationScenario:
         self.working_directory = new_work_dir
 
     def __init__(self, task: str,
-                 model_name: str='empty',
-                 model_type: str='trunk',
-                 scenario: str='empty',
-                 version: int=0):
+                 model_name: str = 'empty',
+                 model_type: str = 'trunk',
+                 scenario: str = 'empty',
+                 version: int = 0):
         """
         Loads an existing simulation scenario or creates an empty one if the specified does not exist.
 
         :param str task: determines if a new scenarios is created (task='create')
                      or it is tried to load (task='load') an existing one.
         :param str model_name: Name of the voxel model that is used in this scenario
-        :param str model_type:  the type of the VoxelModel to use, e.g. 'trunk' or 'complete'.
+        :param str model_type:  the type of the VoxelModel to use, e.g. 'trunk' or 'complete'. Does NOT have any
+                                functionality.
         :param str scenario: Name of the scenario
         :param int version: Version of the scenario
 
@@ -175,6 +176,30 @@ class SimulationScenario:
 
         # In any case print the scenario info of the created/loaded scenario
         self.print_scenario_info()
+
+    @staticmethod
+    def create(model_name: str = 'empty', scenario: str = 'empty', model_type: str = 'empty') -> 'SimulationScenario':
+        """
+        Wrapper for self.__init__('create', model_name, scenario):
+
+        :param model_name: Name of the voxel model that is used in this scenario
+        :param scenario: Name of the scenario
+        :return:
+        """
+        return SimulationScenario('create', model_name=model_name, model_type=model_type, scenario=scenario)
+
+    @staticmethod
+    def load(model_name: str = 'empty', scenario: str = 'empty', version: int = 0, model_type: str = 'empty') \
+            -> 'SimulationScenario':
+        """
+        Wrapper for __init__('load', model_name, scenario, version: int=0):
+        :param model_name: Name of the voxel model that is used in this scenario
+        :param scenario: Name of the scenario
+        :param version: Version of that scenario to load
+        :return:
+        """
+        return SimulationScenario('load', model_name=model_name, scenario=scenario, version=version,
+                                  model_type=model_type)
 
     def save(self):
         """
@@ -311,7 +336,7 @@ class SimulationScenario:
                                  created_by: str,
                                  description: str,
                                  parameters: Dict,
-                                 readme: str) -> Dict:
+                                 readme: str, **kwargs) -> Dict:
         """
         Create a dictionary that is used to store the results.
 
@@ -325,12 +350,17 @@ class SimulationScenario:
         :return:
         """
 
-        return {'name': name,
+        data = {'name': name,
                 'created_on': created_on,
                 'created_by': created_by,
                 'description': description,
                 'parameters': parameters,
                 'readme': readme}
+        # add all kwargs to the dict as well
+        for (key, value) in kwargs.items():
+            data[key] = value
+
+        return data
 
     def add_result(self, results_data: Dict):
         """
@@ -375,7 +405,13 @@ class SimulationScenario:
             elif type(value) is list or type(value) is dict:
                 params += "%s : %s \n" % (key, str(value))
             else:
-                params += "%s : %.2e \n" % (key, value)
+                try:
+                    params += "%s : %.2e \n" % (key, value)
+                except(TypeError):
+                    try:
+                        params += "%s : %s \n" % (key, str(value))
+                    except(TypeError):
+                        logging.warning('Parameter %s could not be printed.' % key)
 
         return params
 
@@ -496,6 +532,7 @@ class SimulationScenario:
             return r_list[0]
         else:
             raise ValueError("No result found for %s." % str(kwargs))
+
 
     @staticmethod
     def list_all_scenarios(model_name: Optional[str]=None,
