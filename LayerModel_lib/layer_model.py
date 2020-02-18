@@ -480,10 +480,10 @@ class LayerModel:
                          threshold_dB: float = 30,
                          direction: str = 'start->end',
                          equivalent_baseband: Dict = None,
-                         precalculated_S21_f: Tuple = None) -> Tuple[np.ndarray, np.ndarray]:
+                         precalculated_S21_f: Tuple = None, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Calculate the impulse response for this LayerModel with the given sampling rate for
-        either the electric or magnetic field.
+        Calculate the impulse response for this LayerModel with the given sampling rate. All kwargs are passed into
+        self.transfer_function().
 
         :param float f_sample:                The sampling rate of the impulse response.
         :param int n_samples:                 The number of samples of the underlying transfer function/ifft calculation
@@ -524,7 +524,7 @@ class LayerModel:
             if direction != 'start->end':
                 raise ValueError("For field_type=S21 only the direction 'start->end' is supported.")
 
-            transfer_function, f = self.S21(f_start=f_start, f_end=f_end, n_samples=n_samples)
+            transfer_function, f = self.transfer_function(f_start=f_start, f_end=f_end, n_samples=n_samples, **kwargs)
         else:
             (transfer_function, f) = precalculated_S21_f
 
