@@ -7,8 +7,10 @@
 #
 # Licensed under MIT license.
 #
+import json
 import numpy as np
 from typing import List, Optional, Union, Dict
+from os.path import dirname, join
 
 from LayerModel_lib.dielectric import DielectricProperties
 
@@ -18,13 +20,46 @@ class TissueProperties(DielectricProperties):
     A class for the Tissue Properties and their dielectric properties
     """
 
-    def __init__(self):
-        DielectricProperties.__init__(self)
+    def __init__(self, source: str = 'gabriel', filename: str = None):
+        """
 
-        self.load('ColeColeConstants.TissueProperties')
-        
+        :param source: Can either be 'gabriel' or 'fornesleal'.
+                        Coefficients are then loaded according to either:
+                            S. Gabriel, R. W. Lau, C. Gabriel: The dielectric properties of biological
+                            tissues: part iii. parametric models for the dielectric spectrum of tissues.
+                            Physics in Medicine and Biology, vol. 41, no. 11, pp. 2271–2293, 1996.
+                              or:
+                            A. Fornes-Leal, N. Cardona, M. Frasson, S. Castello-Palacios et al.: Dielectric
+                            characterization of in vivo abdominal and thoracic tissues in the 0.5 – 26.5 GHz
+                            frequency band for wireless body area networks. IEEE Access, p. 1, 2019
+        :param filename:
+        """
+        super().__init__()
+
+        self.source = source
+
+        if filename is None:
+            if source == 'gabriel':
+                filename = 'tissue_properties_gabriel.json'
+            elif source == 'fornesleal':
+                filename = 'tissue_properties_fornesleal.json'
+            else:
+                raise ValueError('Unknown TissueProperty source. Use parameter filename instead.')
+
+            current_directory = dirname(__file__)
+            path_to_file = join(current_directory, filename)
+        else:
+            path_to_file = filename
+
+        with open(path_to_file, 'r') as fp:
+            data = json.load(fp)
+
+        self.dielectric_names = data['dielectric_names']
+        self.values = {}
+        for key, val in data['values'].items():
+            self.values[key] = np.array(val)
+
         # tissue names refers to the same list as dielectric names
-        # master !
         self.tissue_names = self.dielectric_names
 
     def complex_permittivity(self, tissue_index: Union[np.ndarray, float],
