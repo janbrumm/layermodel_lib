@@ -9,6 +9,8 @@
 #
 import numpy as np
 import os
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from LayerModel_lib.voxelmodel import VoxelModel
 from LayerModel_lib.voxelmodel_importer import VoxelModelImporter
@@ -75,5 +77,11 @@ Donna.models['trunk'].surface_3d = surface
 Donna.models['trunk'].endpoints = []
 for (i, s) in enumerate(surface):
    Donna.models['trunk'].endpoints.append(Coordinate(np.array(s['centroid'])))#
+
+# clean up some artifacts that may occur in the generation of the 3d model
+Donna.cleanup_3d_model(model_type='trunk', z_max=None)
+
+# display the 3d model
+Donna.show_3d_model('trunk', show_endpoints=True)
 
 Donna.save_model()

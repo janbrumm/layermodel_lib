@@ -9,6 +9,8 @@
 #
 import numpy as np
 import os
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from LayerModel_lib.voxelmodel import VoxelModel
 from LayerModel_lib.voxelmodel_importer import VoxelModelImporter
@@ -81,5 +83,11 @@ Irene.models['trunk'].surface_3d = surface
 Irene.models['trunk'].endpoints = []
 for (i, s) in enumerate(surface):
     Irene.models['trunk'].endpoints.append(Coordinate(np.array(s['centroid'])))
+
+# clean up some artifacts that may occur in the generation of the 3d model
+Irene.cleanup_3d_model(model_type='trunk', z_max=1300)
+
+# display the 3d model
+Irene.show_3d_model('trunk', show_endpoints=True)
 
 Irene.save_model()

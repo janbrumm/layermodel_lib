@@ -8,12 +8,9 @@
 # Licensed under MIT license.
 #
 import os
-import sys
 import numpy as np
-import matplotlib.pyplot as plt
-
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from LayerModel_lib.voxelmodel import VoxelModel
 from LayerModel_lib.voxelmodel_importer import VoxelModelImporter
@@ -103,23 +100,11 @@ AustinMan.models['trunk'].endpoints = []
 for (i, s) in enumerate(surface):
     AustinMan.models['trunk'].endpoints.append(Coordinate(np.array(s['centroid'])))
 
-# plot all the patches
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-# plot the surface:
-for s in AustinMan.models['trunk'].surface_3d:
-    verts = s['verts']
-    centroid = s['centroid']
-    surf = Poly3DCollection(verts)
-    surf.set_facecolor((0, 0, 0, 0.7))
-    surf.set_edgecolor('k')
-    ax.add_collection3d(surf)
-    ax.plot(np.array([centroid[0]]), np.array([centroid[1]]), np.array([centroid[2]]), '.')
+# clean up some artifacts that may occur in the generation of the 3d model
+AustinMan.cleanup_3d_model(model_type='trunk', z_max=1400)
 
-ax.set_zlim(800, 1500)
-ax.set_aspect('equal', 'box')
-
-plt.show()
+# display the 3d model
+AustinMan.show_3d_model('trunk', show_endpoints=True)
 
 # save the model
 AustinMan.save_model()

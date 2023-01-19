@@ -10,6 +10,8 @@
 import numpy as np
 import os
 from scipy import ndimage
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from LayerModel_lib import VoxelModel, VoxelModelImporter, Coordinate, TissueProperties
 
@@ -97,5 +99,11 @@ Golem.models['trunk'].surface_3d = surface
 Golem.models['trunk'].endpoints = []
 for (i, s) in enumerate(surface):
     Golem.models['trunk'].endpoints.append(Coordinate(np.array(s['centroid'])))
+
+# clean up some artifacts that may occur in the generation of the 3d model
+Golem.cleanup_3d_model(model_type='trunk', z_max=1300)
+
+# display the 3d model
+Golem.show_3d_model('trunk', show_endpoints=True)
 
 Golem.save_model()

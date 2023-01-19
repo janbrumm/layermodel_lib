@@ -27,10 +27,10 @@ import numpy as np
 
 from os.path import join
 from LayerModel_lib import VoxelModel
-VoxelModel.working_directory = join('..', 'phantoms')
+# VoxelModel.working_directory = join('..', 'phantoms')
 
 
-def cluster_endpoints(endpoints: np.array):
+def cluster_endpoints(endpoints: np.array, compensation: bool = True):
     """
     Function to split up the endpoint-array in four clusters
     :param endpoints: sorted array of endpoints which should be clustered
@@ -75,59 +75,60 @@ def cluster_endpoints(endpoints: np.array):
     clusterC_array = np.array(clusterC)
     clusterD_array = np.array(clusterD)
 
-    # compensate between A and C in case the endpoints are badly distributed
-    diff_A_C = len(clusterA) - len(clusterC)
-    if diff_A_C > 0:  # cluster A has more endpoints than cluster C
-        last_z = clusterA_array[len(clusterA) - 1][2] # z-value of last endpoint in A
-        lr = 1
-        counter = len(clusterA)-2
-        # count the endpoints with the same z-value as the last endpoint (10cm difference are allowed) --> this points
-        # lie in a row
-        while(clusterA_array[counter][2] < last_z + 10):
-            lr += 1
-            counter -= 1
-        if np.abs(diff_A_C - 2*lr) < diff_A_C:  # compensation is advantageous
-            comp = clusterA_array[len(clusterA_array) - lr: len(clusterA_array)]
-            clusterC_array = np.concatenate((comp, clusterC_array)) # last row from A is concatenated with C
-            clusterA_array = clusterA_array[0:len(clusterA_array)-lr] # A is shortened
-    elif diff_A_C < 0:  # cluster C has more endpoints than cluster A
-        first_z = clusterC_array[0][2] # z-value of first endpoint in C
-        fr = 1
-        counter = 1
-        while(clusterC_array[counter][2] > first_z -10):
-            fr += 1
-            counter += 1
-        if np.abs(diff_A_C + 2*fr) < np.abs(diff_A_C):  # compensation is advantageous
-            comp = clusterC_array[0: fr]
-            clusterA_array = np.concatenate((clusterA_array, comp))  # the row from C is concatenated with A
-            clusterC_array = clusterC_array[fr:]
+    if compensation:
+        # compensate between A and C in case the endpoints are badly distributed
+        diff_A_C = len(clusterA) - len(clusterC)
+        if diff_A_C > 0:  # cluster A has more endpoints than cluster C
+            last_z = clusterA_array[len(clusterA) - 1][2] # z-value of last endpoint in A
+            lr = 1
+            counter = len(clusterA)-2
+            # count the endpoints with the same z-value as the last endpoint (10mm difference are allowed) --> this points
+            # lie in a row
+            while(clusterA_array[counter][2] < last_z + 10):
+                lr += 1
+                counter -= 1
+            if np.abs(diff_A_C - 2*lr) < diff_A_C:  # compensation is advantageous
+                comp = clusterA_array[len(clusterA_array) - lr: len(clusterA_array)]
+                clusterC_array = np.concatenate((comp, clusterC_array)) # last row from A is concatenated with C
+                clusterA_array = clusterA_array[0:len(clusterA_array)-lr] # A is shortened
+        elif diff_A_C < 0:  # cluster C has more endpoints than cluster A
+            first_z = clusterC_array[0][2] # z-value of first endpoint in C
+            fr = 1
+            counter = 1
+            while(clusterC_array[counter][2] > first_z -10):
+                fr += 1
+                counter += 1
+            if np.abs(diff_A_C + 2*fr) < np.abs(diff_A_C):  # compensation is advantageous
+                comp = clusterC_array[0: fr]
+                clusterA_array = np.concatenate((clusterA_array, comp))  # the row from C is concatenated with A
+                clusterC_array = clusterC_array[fr:]
 
-    # compensate between B and D
-    diff_B_D = len(clusterB) - len(clusterD)
-    if diff_B_D > 0:  # cluster B has more endpoints than cluster D
-        last_z = clusterB_array[len(clusterB) - 1][2] # z-value of last endpoint in B
-        lr = 1
-        counter = len(clusterB)-2
-        # count the endpoints with the same z-value as the last endpoint (10cm difference are allowed) --> this points
-        # lie in a row
-        while(clusterB_array[counter][2] < last_z + 10):
-            lr += 1
-            counter -= 1
-        if np.abs(diff_B_D - lr) < diff_B_D:  # compensation is advantageous
-            comp = clusterB_array[len(clusterB_array) - lr: len(clusterB_array)]
-            clusterD_array = np.concatenate((comp, clusterD_array))
-            clusterB_array = clusterB_array[0:len(clusterB_array)-lr]
-    elif diff_B_D < 0:  # cluster D has more endpoints than cluster B
-        first_z = clusterD_array[0][2] # z-value of first endpoint in D
-        fr = 1
-        counter = 1
-        while(clusterD_array[counter][2] > first_z -10):
-            fr += 1
-            counter += 1
-        if np.abs(diff_B_D + fr) < np.abs(diff_B_D):  # compensation is advantageous
-            comp = clusterD_array[0: fr]
-            clusterB_array = np.concatenate((clusterB_array, comp))  # the row from D is concatenated with B
-            clusterD_array = clusterD_array[fr:]
+        # compensate between B and D
+        diff_B_D = len(clusterB) - len(clusterD)
+        if diff_B_D > 0:  # cluster B has more endpoints than cluster D
+            last_z = clusterB_array[len(clusterB) - 1][2] # z-value of last endpoint in B
+            lr = 1
+            counter = len(clusterB)-2
+            # count the endpoints with the same z-value as the last endpoint (10mm difference are allowed) --> this points
+            # lie in a row
+            while(clusterB_array[counter][2] < last_z + 10):
+                lr += 1
+                counter -= 1
+            if np.abs(diff_B_D - lr) < diff_B_D:  # compensation is advantageous
+                comp = clusterB_array[len(clusterB_array) - lr: len(clusterB_array)]
+                clusterD_array = np.concatenate((comp, clusterD_array))
+                clusterB_array = clusterB_array[0:len(clusterB_array)-lr]
+        elif diff_B_D < 0:  # cluster D has more endpoints than cluster B
+            first_z = clusterD_array[0][2] # z-value of first endpoint in D
+            fr = 1
+            counter = 1
+            while(clusterD_array[counter][2] > first_z -10):
+                fr += 1
+                counter += 1
+            if np.abs(diff_B_D + fr) < np.abs(diff_B_D):  # compensation is advantageous
+                comp = clusterD_array[0: fr]
+                clusterB_array = np.concatenate((clusterB_array, comp))  # the row from D is concatenated with B
+                clusterD_array = clusterD_array[fr:]
 
     # set up the cluster mapper
     for (e,i) in zip(endpoints, range(len(endpoints))):
@@ -146,7 +147,8 @@ def cluster_endpoints(endpoints: np.array):
 
 if __name__ == '__main__':
     # Get a list of all models and run the script for them all
-    all_models = ['AustinMan_v2.5_2x2x2',
+    all_models = ['Alvar',
+                  'AustinMan_v2.5_2x2x2',
                   'AustinMan_v2.6_1x1x1',
                   'AustinWoman_v2.5_1x1x1',
                   'AustinWoman_v2.5_2x2x2',
@@ -156,22 +158,41 @@ if __name__ == '__main__':
                   'Irene',
                   'Katja',
                   'VisibleHuman']
+
+    all_models = ['Alvar']
     for model_name in all_models:
         vm = VoxelModel(model_name)
 
         # defined ranges for the x- and z-Parameters to get endpoints only at the front (belly)
-        x_ranges = {'AustinWoman_v2.5_2x2x2': (230,350),'AustinWoman_v2.5_1x1x1': (230,350),
-                    'AustinMan_v2.5_2x2x2': (250, 350), 'AustinMan_v2.6_1x1x1': (250, 350),
-                    'Irene': (150,200), 'Donna': (320,400), 'Golem': (220,350), 'Helga': (300,400),
-                    'VisibleHuman': (300,450), 'Katja': (175,300), 'Frank': (200,380)}
+        x_ranges = {'Alvar': (180, 270),
+                    'AustinWoman_v2.5_2x2x2': (230, 350),
+                    'AustinWoman_v2.5_1x1x1': (230, 350),
+                    'AustinMan_v2.5_2x2x2': (250, 350),
+                    'AustinMan_v2.6_1x1x1': (250, 350),
+                    'Irene': (150, 200),
+                    'Donna': (320, 400),
+                    'Golem': (220, 350),
+                    'Helga': (300, 400),
+                    'VisibleHuman': (300, 450),
+                    'Katja': (175, 300),
+                    'Frank': (200, 380)}
 
-        z_ranges = {'AustinWoman_v2.5_2x2x2': [900,1250],'AustinWoman_v2.5_1x1x1': [900,1220],
-                    'AustinMan_v2.5_2x2x2': [1000,1350], 'AustinMan_v2.6_1x1x1':[1000,1350],
-                    'Irene': (950,1280), 'Donna': (1000,1300), 'Golem': (900,1270), 'Helga': (330,685),
-                    'VisibleHuman': (380,750), 'Katja': (910,1220), 'Frank': (100,400)}
+        z_ranges = {'Alvar': (920, 1230),
+                    'AustinWoman_v2.5_2x2x2': (900, 1250),
+                    'AustinWoman_v2.5_1x1x1': (900, 1220),
+                    'AustinMan_v2.5_2x2x2': (1000, 1350),
+                    'AustinMan_v2.6_1x1x1': (1000, 1350),
+                    'Irene': (950, 1280),
+                    'Donna': (1000, 1300),
+                    'Golem': (900, 1270),
+                    'Helga': (330, 685),
+                    'VisibleHuman': (380, 750),
+                    'Katja': (910, 1220),
+                    'Frank': (100, 400)}
 
         # navel for the models set by hand set by hand
-        navel = {'AustinWoman_v2.5_2x2x2': np.array([ 305.9999694,  359.999964 , 1074.]),
+        navel = {'Alvar': np.array([246, 335, 1088]),
+                 'AustinWoman_v2.5_2x2x2': np.array([ 305.9999694,  359.999964 , 1074.]),
                  'AustinWoman_v2.5_1x1x1': np.array([ 309.999969 ,  366.9999633, 1054.]),
                  'AustinMan_v2.5_2x2x2': np.array( [325.9999674,  363.9999636, 1124]),
                  'AustinMan_v2.6_1x1x1':  np.array([319.999968 ,  352.9999647, 1129]),
@@ -200,13 +221,20 @@ if __name__ == '__main__':
 
         # Cluster Mapping
         # split the endpoints in four regions
-        clusterA, clusterB, clusterC, clusterD, cluster_map_1st = cluster_endpoints(endpoints_sorted_array)
+        clusterA, clusterB, clusterC, clusterD, cluster_map_1st = cluster_endpoints(endpoints_sorted_array,
+                                                                                    compensation=True)
 
         # subclustering: split the above clusters again into four regions
-        clusterA1, clusterA2, clusterA3, clusterA4, cluster_mapA = cluster_endpoints(clusterA)
-        clusterB1, clusterB2, clusterB3, clusterB4, cluster_mapB = cluster_endpoints(clusterB)
-        clusterC1, clusterC2, clusterC3, clusterC4, cluster_mapC = cluster_endpoints(clusterC)
-        clusterD1, clusterD2, clusterD3, clusterD4, cluster_mapD = cluster_endpoints(clusterD)
+        clusterA1, clusterA2, clusterA3, clusterA4, cluster_mapA = cluster_endpoints(clusterA, compensation=True)
+        clusterB1, clusterB2, clusterB3, clusterB4, cluster_mapB = cluster_endpoints(clusterB, compensation=True)
+        clusterC1, clusterC2, clusterC3, clusterC4, cluster_mapC = cluster_endpoints(clusterC, compensation=True)
+        clusterD1, clusterD2, clusterD3, clusterD4, cluster_mapD = cluster_endpoints(clusterD, compensation=True)
+
+        if model_name == 'Alvar':
+            # some manual manipulation for Alvar is needed.
+            cluster_mapC[18] = [0.]
+            clusterC1 = np.vstack((clusterC1[0:8], clusterC3[0], clusterC1[8::]))
+            clusterC3 = clusterC3[1::]
 
         # For each endpoint find the subcluster and set up a cluster map for the 16 clusters
         # cluster_map: defines overall mapping
@@ -242,5 +270,5 @@ if __name__ == '__main__':
         vm.models['trunk'].endpoints_abdomen_clustering = cluster_map
 
         # save the model
-        vm.save_model()
+        # vm.save_model()
 

@@ -71,7 +71,7 @@ ID,BRISKit Materials,Assigned Materials
 196,VitreousHumor,Vitreous Humor
 200,Stomach,Stomach
 201,StomachInternal,StomachContents
-204,SkinDry,SkinDry
+204,SkinDry,SkinWet
 208,MucousMembrane,MucousMembrane
 212,SkinWet,SkinWet
 213,Ligament,Tendon

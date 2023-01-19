@@ -9,6 +9,8 @@
 #
 import os
 import numpy as np
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from LayerModel_lib.voxelmodel import VoxelModel
 from LayerModel_lib.voxelmodel_importer import VoxelModelImporter
@@ -72,5 +74,10 @@ VisibleHuman.models['trunk'].endpoints = []
 for (i, s) in enumerate(surface):
     VisibleHuman.models['trunk'].endpoints.append(Coordinate(np.array(s['centroid'])))
 
+# clean up some artifacts that may occur in the generation of the 3d model
+VisibleHuman.cleanup_3d_model(model_type='trunk', z_max=820, bad_indices=[231])
+
+# display the 3d model
+VisibleHuman.show_3d_model('trunk', show_endpoints=True)
 
 VisibleHuman.save_model()

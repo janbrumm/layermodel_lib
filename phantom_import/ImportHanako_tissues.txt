@@ -1,0 +1,60 @@
+ID, Tissue Name, Assigned Tissue Name
+0,ExternalAir,ExternalAir
+1,Cerebellum, Cerebellum
+2,CSF, CerebroSpinalFluid
+3,Cornea,Cornea
+4,NotTaken,ExternalAir
+5,Eye tissue (Sclera), EyeSclera
+6,Gray Matter, BrainGreyMatter
+7,Hypothalamus, BrainGreyMatter
+8,Lens, Lens
+9,Pineal Glands, Gland
+10,Pituitary, BrainGreyMatter
+11,Salivary gland, Gland
+12,Thalamus,BrainGreyMatter
+13,Tongue, Tongue
+14,White Matter, BrainWhiteMatter
+15,Adrenals, Gland
+16,Bladder, Bladder
+17,Breast fat, BreastFat
+18,Large Intestine, Colon
+19,Large Intestine Contents, GIcontents
+20,Duodenum, Duodenum
+21,Esophagus, Stomach
+22,Bile, GallBladderBile
+23,Gall Bladder, GallBladder
+24,Heart, Heart
+25,Kidney, Kidney
+26,Liver, Liver
+27,Lung, LungInflated
+28,Ovary, Ovary
+29,Pancreas, Pancreas
+30,Prostate, Prostate
+31,Small Intestine, SmallIntestine
+32,Spleen, Spleen
+33,Stomach, Stomach
+34,Stomach Contents, StomachContents
+35,Tendon, Tendon
+36,Testis, Testis
+37,NotTaken,ExternalAir
+38,Thyroid, Thyroid
+39,Trachea, Trachea
+40,Urine, Blood
+41,Uterus, Uterus
+42,NotTaken,ExternalAir
+43,Air (Internal), Air
+44,Blood, Blood
+45,Cortical Bone, BoneCortical
+46,Bone Marrow and Cancellous Bone, BoneCancellous
+47,Cartilage, Cartilage
+48,Fat, Fat
+49,Muscle, Muscle
+50,Nerve (Spinal cord), Nerve
+51,Skin, SkinWet
+52,Tooth, Tooth
+53,Ligament, Tendon
+54,Small Intestine Contents, GIcontents
+55,Diaphragm, Muscle
+56,Seminal Vesicle, Muscle
+57,Cavernous Body, Muscle
+58,Vagina, Muscle
