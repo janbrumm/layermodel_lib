@@ -46,7 +46,8 @@ class VoxelModelData:
                  outer_shape: Dict,
                  tissue_names: Optional[List[str]]=None,
                  mask: Optional[Dict]=None,
-                 tissue_mapping: Optional[np.ndarray]=None):
+                 tissue_mapping: Optional[np.ndarray]=None,
+                 scaling: Optional[Coordinate]=None):
 
         self.name = name
         self.data = data
@@ -66,6 +67,8 @@ class VoxelModelData:
         self.mask = mask
 
         self.tissue_mapping = tissue_mapping
+        self.surface_3d = []  # list of vertices and centroids of the 3d surface
+        self.scaling = scaling
 
     def __str__(self) -> str:
         s = self.name + "\n" \
@@ -105,7 +108,7 @@ class VoxelModelData:
 
         return new_data_set
 
-    def coordinate_to_index(self, c: Coordinate, scaling: Coordinate) -> Tuple[int, int, int]:
+    def coordinate_to_index(self, c: Coordinate, scaling: Coordinate = None) -> Tuple[int, int, int]:
         """
         Converts a coordinate to the voxel model to an index that can be used with the model_type in this
         VoxelModelData
@@ -114,6 +117,9 @@ class VoxelModelData:
         :param Coordinate c: A coordinate in mm relative to the complete body of the voxel model
         :return:
         """
+        if scaling is None:
+            scaling = self.scaling
+
         # first round the coordinate to the nearest voxel
         index = np.array(np.around(c / scaling).astype(int))
         # remove any possible offset from the model_type
@@ -127,7 +133,7 @@ class VoxelModelData:
 
         return tuple(index)
 
-    def coordinate_to_voxelcoordinate(self, c: Coordinate, scaling: Coordinate) -> Tuple[int, int, int]:
+    def coordinate_to_voxelcoordinate(self, c: Coordinate, scaling: Coordinate = None) -> Tuple[int, int, int]:
         """
         Converts a coordinate in the voxel model (in mm) to a coordinate relative to the voxel indices.
         That means fractions of indices are allowed. In contrast coordinate_to_index() returns the
@@ -138,6 +144,9 @@ class VoxelModelData:
         :return:
         A coordinate relative to this VoxelModelData model type in voxel coordinates (fractions of voxels not mm)
         """
+        if scaling is None:
+            scaling = self.scaling
+
         # first round the coordinate to the nearest voxel
         index = np.array(c / scaling)
         # remove any possible offset from the model_type
@@ -151,7 +160,7 @@ class VoxelModelData:
 
         return tuple(index)
 
-    def index_to_coordinate(self, index: Union[Tuple, np.ndarray], scaling: Coordinate) -> Coordinate:
+    def index_to_coordinate(self, index: Union[Tuple, np.ndarray], scaling: Coordinate = None) -> Coordinate:
         """
         Converts an index to the model_type to a coordinate in mm.
 
@@ -159,6 +168,9 @@ class VoxelModelData:
         :param scaling: scaling of the parent voxel model.
         :return:
         """
+        if scaling is None:
+            scaling = self.scaling
+
         # make sure that the index is 1-dimensional if it is an numpy array
         if type(index) is np.ndarray:
             # make a copy such that the original index is not altered
@@ -193,3 +205,40 @@ class VoxelModelData:
             endpoint_index_list.append(min_index)
 
         return endpoint_index_list
+
+    def get_surf3d_bbox(self, z_max_limit: float = None) -> Tuple[Coordinate, Coordinate]:
+        """
+        Get the minimum and maximum x, y, z values of this 3d surface
+
+        :return: (minium coordinates, maximum coordinates)
+        """
+        # save a list of min. and max. X, Y, Z coordinates
+        x_min, y_min, z_min = [1e10] * 3
+        x_max, y_max, z_max = [0] * 3
+
+        for (surf3d_idx, s) in enumerate(self.surface_3d):
+            verts = s['verts']
+
+            # find min and max data points
+            for v in verts:
+                # check if the patch is higher than the z limit given
+                if z_max_limit is not None and np.any(np.max(v[:, 2]) > z_max_limit):
+                    break
+
+                if np.max(v[:, 0]) > x_max:
+                    x_max = np.max(v[:, 0])
+                if np.min(v[:, 0]) < x_min:
+                    x_min = np.min(v[:, 0])
+                if np.max(v[:, 1]) > y_max:
+                    y_max = np.max(v[:, 1])
+                if np.min(v[:, 1]) < y_min:
+                    y_min = np.min(v[:, 1])
+                if np.max(v[:, 2]) > z_max:
+                    z_max = np.max(v[:, 2])
+                if np.min(v[:, 2]) < z_min:
+                    z_min = np.min(v[:, 2])
+
+        max_coord = Coordinate([x_max, y_max, z_max])
+        min_coord = Coordinate([x_min, y_min, z_min])
+
+        return min_coord, max_coord

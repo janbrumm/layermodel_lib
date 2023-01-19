@@ -637,7 +637,9 @@ class VoxelModel:
                       show_surf3d_indices: bool = False,
                       x_min_limit: float = None, x_max_limit: float = None,
                       y_min_limit: float = None, y_max_limit: float = None,
-                      z_min_limit: float = None, z_max_limit: float = None) -> Tuple:
+                      z_min_limit: float = None, z_max_limit: float = None,
+                      plot_origin: np.ndarray = None, plot_radius: float = None,
+                      transformation_vector: Coordinate = None) -> Tuple:
         """
         Open a plot showing the 3D model of the model_type given.
 
@@ -658,6 +660,9 @@ class VoxelModel:
         :param y_min_limit: minimum y value to plot
         :param z_max_limit: maximum z value to plot
         :param z_min_limit: minimum z value to plot
+        :param plot_origin: origin for setting axis scaling equal -> handed over to set_axes_equal()
+        :param plot_radius: radius for setting axis scaling equal -> handed over to set_axes_equal()
+        :param transformation_vector: a vector giving the translation applied to all patches before drawing
         :return:
         """
         import matplotlib.pyplot as plt
@@ -737,6 +742,13 @@ class VoxelModel:
             if patch_out_of_z_limits:
                 continue
 
+            # move all coordinates by the vector given in transformation_vector
+            if transformation_vector is not None:
+                verts_transformed = []
+                for v in verts:
+                    verts_transformed.append(v - np.tile(np.array(transformation_vector), (4, 1)))
+                verts = verts_transformed
+
             surf = Poly3DCollection(verts)
 
             # colour the patches which are endpoints
@@ -744,6 +756,7 @@ class VoxelModel:
                 endpoints_abdomen = np.array(self.models['trunk'].endpoints_abdomen)
                 if Coordinate(centroid) in self.models['trunk'].endpoints_abdomen:
                     surf.set_facecolor(endpoint_color)
+
                 else:
                     surf.set_facecolor(default_face_color)
             # colour the endpoint-patches depending on their cluster
@@ -768,7 +781,7 @@ class VoxelModel:
                         surf.set_facecolor(color)
                         surf.set_alpha(1)
                         surf.set_hatch(hatch_temp)
-                        print('set color to %s at endpoint %s' % (str(color), str(Coordinate(centroid))))
+                        logging.debug('set color to %s at endpoint %s' % (str(color), str(Coordinate(centroid))))
                         found_one = True
 
                 if not found_one:
@@ -784,7 +797,7 @@ class VoxelModel:
                         surf.set_facecolor(color)
                         surf.set_alpha(1)
                         surf.set_hatch(hatch_temp)
-                        print('set color to %s at endpoint %s' % (str(color), str(Coordinate(centroid))))
+                        logging.debug('set color to %s at endpoint %s' % (str(color), str(Coordinate(centroid))))
                         found += 1
                         color_list.append(color)
 
@@ -795,24 +808,57 @@ class VoxelModel:
                 elif found > 2:
                     logging.warning("More than 2 colors per patch are currently not supported.")
 
+            index_text = None
             if show_surf3d_indices:
                 c = surf.get_facecolor()
                 c[0][3] = 0.5
                 surf.set_facecolor(c)
-                ax.text(centroid[0], centroid[1], centroid[2], "%d" % surf3d_idx, None, horizontalalignment='center',
-                        fontsize='x-small')
+                index_text = f'{surf3d_idx}'
+
+            if show_endpoint_indices:
+                try:
+                    # get the endpoint index of the current patch
+                    endpoint_idx = self.models['trunk'].endpoints_abdomen.index(Coordinate(centroid))
+                    c = surf.get_facecolor()
+                    c[0][3] = 0.5
+                    surf.set_facecolor(c)
+                    index_text = f'{endpoint_idx}'
+
+                except ValueError:  # if centroid is not in endpoint list a ValueError is raised
+                    pass
 
             surf.set_edgecolor('k')
             ax.add_collection3d(surf)
+
+            # annotate the indices if desired
+            if index_text is not None:
+                ax.text(centroid[0], centroid[1], centroid[2], index_text, None, horizontalalignment='center',
+                        fontsize='x-small')
+
             ax.plot(np.array([centroid[0]]), np.array([centroid[1]]), np.array([centroid[2]]), '.',
                     color=[1, 1, 1, 0.5])
 
-        ax.set_zlim(self.models[model_type].mask['z'].start * self.scaling.z,
-                    max(self.models[model_type].mask['z']) * self.scaling.z)
-        ax.set_xlim(0, max(self.models['trunk'].mask['x']) * self.scaling.x)
-        ax.set_ylim(0, max(self.models['trunk'].mask['y']) * self.scaling.y)
+        # plot boundaries of the complete model
+        x_min = self.models[model_type].mask['x'][0] * self.scaling.x
+        x_max = self.models[model_type].mask['x'][-1] * self.scaling.x
+        y_min = self.models[model_type].mask['y'][0] * self.scaling.y
+        y_max = self.models[model_type].mask['y'][-1] * self.scaling.y
+        z_min = self.models[model_type].mask['z'][0] * self.scaling.z
+        z_max = self.models[model_type].mask['z'][-1] * self.scaling.z
 
-        set_axes_equal(ax)
+        if transformation_vector is not None:
+            x_min = x_min - transformation_vector.x
+            x_max = x_max - transformation_vector.x
+            y_min = y_min - transformation_vector.y
+            y_max = y_max - transformation_vector.y
+            z_min = z_min - transformation_vector.z
+            z_max = z_max - transformation_vector.z
+
+        ax.set_zlim(z_min, z_max)
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+
+        set_axes_equal(ax, origin=plot_origin, radius=plot_radius)
         ax.elev = 19
         ax.azim = 10
         ax.dist = 6
