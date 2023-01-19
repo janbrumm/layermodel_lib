@@ -18,21 +18,30 @@ try:
 except ModuleNotFoundError as e:
     warnings.warn("Module opencv-python (cv2) not found.")
 
+import random
 import matplotlib as matplt
+import matplotlib.pyplot as plt
 import scipy.spatial.distance as ssdist
 
 from os import listdir, makedirs, getcwd
 from os.path import join, isfile, dirname, exists
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from typing import Dict, Optional, List, Tuple, Union
+from typing import Dict, Optional, List, Tuple, Union, Any, Callable
 from sklearn.neighbors import NearestNeighbors
 import networkx as nx
+from matplotlib.patches import Rectangle
+from matplotlib.colors import ListedColormap
+from matplotlib.collections import PatchCollection
+from operator import attrgetter
+from scipy.spatial.distance import pdist, squareform
+from copy import deepcopy
 
 from LayerModel_lib.general import ProgressBarConfig as ProgBar
 from LayerModel_lib.coordinate import Coordinate
 from LayerModel_lib.tissue_properties import TissueProperties
 from LayerModel_lib.voxelmodel_data import VoxelModelData
 from LayerModel_lib.general import set_axes_equal
+from LayerModel_lib.general import ModelNames
 
 
 class VoxelModel:
@@ -112,7 +121,7 @@ class VoxelModel:
             self.name = 'empty'
             self.description = ''
             self.models = {}
-            self.physiological_properties = {}
+            self.physiological_properties = PhysiologicalProperties()
             self.scaling = Coordinate([1, 1, 1])
             # Load the colormap used for plots
             current_directory = dirname(__file__)
@@ -130,19 +139,19 @@ class VoxelModel:
         Object evaluates as True only if the model_name is not set to 'empty'
         :return:
         """
-        if self.name is 'empty':
+        if self.name == 'empty':
             return False
         else:
             return True
 
-    def save_model(self):
+    def save_model(self, force_write: bool = False):
         """
         Save the voxel model in the current working_directory.
         """
         filename = join(self.path, self.filename)
 
         # check if the file exists
-        if isfile(filename):
+        if not force_write and isfile(filename):
             ctrl = input('%s.VoxelModel exists already in\n %s/Phantoms.\n'
                          ' Are you sure you want to overwrite it [y/N]: '
                          % (self.name, self.path))
@@ -178,10 +187,11 @@ class VoxelModel:
             logging.error('%s is already saved in the models dict.' % short_name)
         else:
             # force the mapping to be present for the original model
-            if short_name is 'original' and tissue_mapping is not None:
+            if short_name == 'original' and tissue_mapping is not None:
                 raise TypeError("Error: All but the 'original' model need a tissue_mapping np.ndarray!")
 
-            self.models[short_name] = VoxelModelData(name, model, outer_shape, tissue_names, mask, tissue_mapping)
+            self.models[short_name] = VoxelModelData(name, model, outer_shape, tissue_names, mask,
+                                                     tissue_mapping, scaling=self.scaling)
 
     def export_to_CST(self, model_type: str, path: str = ""):
         """
@@ -241,7 +251,7 @@ class VoxelModel:
         text = "// Tissue	Num	RelPermittivity	RelPermeability	Conductivity	Rho	K \n" \
                "// 				[S/m]	[kg/m^3]	[W/mK]	[J/gK]	[W/m^3K]	[W/m^3]	\n"
 
-        for (id, tissue) in enumerate(self.models['trunk'].tissue_names):
+        for (id, tissue) in enumerate(self.models[model_type].tissue_names):
             text += "%s \t\t %d \t1.000000 1.000000 0.000000 0.000000\n" % (tissue, id)
 
         filename = join(relative_path, name + "_Materials.txt")
@@ -569,10 +579,14 @@ class VoxelModel:
         Determines number_of_startpoints randomly inside the tissue_type for the given voxel model type.
         Each startpoint has a minimum distance min_distance to all other startpoints.
 
+        Due to the random nature of selecting the points it can happen that the final number of startpoints
+        is diffferent from call to call, if number_of_startpoints is close to the limit of points that can be obtained
+        from that model with the given min_distance.
+
         :param model_type:                  The model type to use
         :param int tissue_type:             The tissue id where the startpoints should be placed.
-        :param int number_of_startpoints:   The total number
-        :param float min_distance:          Minimum distance between adjacent startpoints in mm (not implemented yet)
+        :param int number_of_startpoints:   The total number of startpoints
+        :param float min_distance:          Minimum distance between adjacent startpoints in mm
         :return:
         """
 
@@ -592,24 +606,50 @@ class VoxelModel:
 
         coordinates_all = np.c_[x, y, z]
 
-        # ensure a given minimum distance between startpoints by taking only certain rows of coordinates_all
-        # You have to delete as many rows such that in the extreme case, when only the coordinate with the smallest
-        # distance between adjacent coordinates is changing, the distance is sufficiently high
-        # minimum distance in one coordinate direction
-        min_coordinate_distance = np.min([self.scaling.x, self.scaling.y, self.scaling.z])
-        # how many rows to delete
-        num_delete = int(np.ceil(min_distance/min_coordinate_distance))
-        coordinates_all = coordinates_all[0::num_delete]
+        # ensure a given minimum distance between startpoints by starting with the first entry in the array
+        # and add subsequent ones only if they have distance greater than min_distance to all other existing coordinates
 
-        possible_coordinates = np.arange(0, coordinates_all.shape[0])
-        remaining_number = number_of_startpoints
+        rng = np.random.default_rng()
+        remaining_idx = np.arange(coordinates_all.shape[0])
+        selected_idx = rng.choice(remaining_idx, size=number_of_startpoints, replace=False)
 
-        # just generate random indices for all the coordinates
-        random_index = tuple(np.random.choice(possible_coordinates, size=remaining_number, replace=False))
+        coordinates_selected = coordinates_all[selected_idx]
 
-        return_list = []
-        for i in random_index:
-            return_list.append(Coordinate(coordinates_all[i, :]))
+        while True:
+            # check if the distance to all coordinates in the list is larger than min_distance
+            D = ssdist.squareform(ssdist.pdist(coordinates_selected, 'euclidean'))
+
+            # indices of all entries smaller min_distance
+            smaller_idx = np.nonzero(np.logical_and(D > 0, D < min_distance))
+            if smaller_idx[0].size > 0:
+                # there are values smaller min_distance in the vector -> remove them.
+                unique_idx = np.unique(smaller_idx[0])
+                number_removed = unique_idx.size
+                coordinates_selected = np.delete(coordinates_selected, unique_idx, axis=0)
+                # draw number_removed new random startpoints from all indices except the ones that have been used already
+                # (these are stored in selected_idx
+                remaining_idx = np.setdiff1d(np.arange(coordinates_all.shape[0]), selected_idx)
+                if remaining_idx.size > 0:
+                    if number_removed > remaining_idx.size:
+                        # there are not enough remaining coordinates to draw randomly ->
+                        # take the remaining as they are
+                        new_idx = remaining_idx
+                    else:
+                        new_idx = rng.choice(remaining_idx, size=number_removed, replace=False)
+                else:
+                    # there are no remaining coordinates to draw from
+                    break
+
+                selected_idx = np.append(selected_idx, new_idx)
+                coordinates_selected = np.append(coordinates_selected, coordinates_all[new_idx], axis=0)
+            else:
+                break
+
+        return_list = [Coordinate(coordinates_selected[i, :]) for i in range(coordinates_selected.shape[0])]
+
+        if len(return_list) < number_of_startpoints:
+            logging.warning(f'There are only {len(return_list)} startpoints with min_distance = {min_distance} mm '
+                            f'available ({number_of_startpoints} startpoints requrested).')
 
         return return_list
 
@@ -635,6 +675,7 @@ class VoxelModel:
                       colored_endpoint_indices: List[Tuple] = None,
                       colored_surf3d_indices: List[Tuple] = None,
                       show_surf3d_indices: bool = False,
+                      show_endpoint_indices: bool = False,
                       x_min_limit: float = None, x_max_limit: float = None,
                       y_min_limit: float = None, y_max_limit: float = None,
                       z_min_limit: float = None, z_max_limit: float = None,
@@ -665,7 +706,6 @@ class VoxelModel:
         :param transformation_vector: a vector giving the translation applied to all patches before drawing
         :return:
         """
-        import matplotlib.pyplot as plt
 
         # colours for the different clusters
         cluster_colour = {'[0. 0.]': (0, 0, 0.5451, 0.8), '[0. 1.]': (0, 0, 1, 0.8),
@@ -864,6 +904,405 @@ class VoxelModel:
         ax.dist = 6
         ax.set_axis_off()
         return fig, ax
+
+    def determine_physical_endpoint_mapping(self):
+        """
+        Generate a list of list that contains the physical positions of the endpoints.
+        The rows are the physical rows of the abdominal endpoints. However, Entries in the i-th column do not necessarily
+        align completely.
+        Compare with result of vm.plot_abdominal_endpoint_patches(show_endpoint_indices=False)
+        The resulting list assigns the left-top most endpoint the index 0, 0. Hence,
+        physical_endpoint_mapping[0][0] is the left top mos endpoint when viewed from the front.
+        physical_endpoint_mapping[row][col] : column is increasing from left to right (viewed from front),
+                                              row is increasing from top to bottom.
+        :param vm:
+        :return:
+        """
+
+        def multisort(xs, specs):
+            # sorting for multiple values in a list.
+            for key, reverse in reversed(specs):
+                xs.sort(key=key, reverse=reverse)
+
+            return xs
+
+        model_type = 'trunk'
+        # make sure not to change the original voxel model
+        original_endpoint_list = deepcopy(self.models[model_type].endpoints_abdomen)
+        surface_3d = deepcopy(self.models[model_type].surface_3d)
+
+        # for some models, the z coordinates of the centroids of some of the patches are slightly deviating from
+        # the majority, that needs to be corrected for the algorithm below.
+        z_mapping = {ModelNames.Alvar: {944.9767441860465: 945.4883720930233, 975.1627906976745: 975.6744186046512,
+                                        1005.3488372093024: 1005.8604651162791, 1065.7209302325582: 1066.2325581395348,
+                                        1066.7441860465117: 1066.2325581395348, 1095.906976744186: 1096.418604651163,
+                                        1096.9302325581396: 1096.418604651163, 1156.2790697674418: 1156.7906976744187},
+                     ModelNames.AustinMan_v25_2mm: {1096: 1094, 1066: 1064, 1036: 1034},
+                     ModelNames.AustinMan_v26_1mm: {1010: 1009, 1040: 1039, 1070: 1069, 1100: 1099,
+                                                    1101: 1099, 1130: 1129, 1310: 1309},
+                     ModelNames.AustinWoman_v25_2mm: {1220: 1224, 1226: 1224, 1228: 1224},
+                     ModelNames.AustinWoman_v25_1mm: {905: 904, 935: 934, 937: 934, 995: 994, 1025: 1024, 1055: 1054,
+                                                      1085: 1084,
+                                                      1175: 1174, 1205: 1204},
+                     ModelNames.Donna: {1290: 1300},
+                     ModelNames.Golem: {928: 920, 960: 952, 992: 984, 1016: 1024, 1056: 1048, 1088: 1080, 1120: 1112,
+                                        1152: 1144, 1216: 1208},
+                     ModelNames.Hanako: {802: 804, 892: 894, 952: 954, 982: 984, 1012: 1014, 1076: 1074},
+                     ModelNames.Irene: {1020: 1015, 1050: 1045, 1080: 1075, 1135: 1140, 1170: 1165, 1195: 1200,
+                                        1260: 1255},
+                     ModelNames.Taro: {896: 898},
+                     ModelNames.VisibleHuman: {390: 385, 420: 415, 450: 445, 480: 475, 510: 505, 540: 535, 570: 565,
+                                               600: 595,
+                                               630: 625, 660: 655, 690: 685, 720: 715, 750: 745}}
+
+        # apply the mapping to the centroids of the patches
+        # NOTE: This also temporarily changes the coordinates in self.models[model_type].endpoints_abdomen
+        #       as all entries of endpoints are the sorted entries of self.models[model_type].endpoints_abdomen.
+        if self.name in z_mapping:
+            m = z_mapping[self.name]
+            for p in surface_3d:
+                if p['centroid'][2] in m.keys():
+                    # find that in the original_endpoint_list
+                    try:
+                        endpoint_idx = original_endpoint_list.index(Coordinate(p['centroid']))
+                    except ValueError:
+                        endpoint_idx = None
+
+                    old_z = p['centroid'][2]
+                    p['centroid'][2] = m[old_z]
+                    if endpoint_idx is not None:
+                        original_endpoint_list[endpoint_idx].z = m[old_z]
+
+        # select all the patches for the endpoints and sort them the same way as the endpoints
+        patches_unsorted = [p for p in surface_3d if Coordinate(p['centroid']) in original_endpoint_list]
+        patches = multisort(list(patches_unsorted),
+                            ((lambda p: p['centroid'][2], True), (lambda p: p['centroid'][1], False)))
+
+        physical_endpoint_mapping = []
+        surface_3d_mapping = {}
+        previous_centroid = Coordinate([0, 0, 0])
+        row_idx = 0
+        for idx, p in enumerate(patches):
+            centroid = Coordinate(p['centroid'])
+            # the patches in patches are not sorted in the same order as the "official" list of endpoints.
+            # ==> determine the index of the endpoint
+            endpoint_idx = original_endpoint_list.index(Coordinate(p['centroid']))
+            for surf_idx, s in enumerate(surface_3d):
+                if np.all(s['centroid'] == p['centroid']):
+                    break  # surf_idx is the value where they are equal
+
+            if previous_centroid.z != centroid.z:
+                # start a new row
+                if len(physical_endpoint_mapping) > 0:
+                    row_idx += 1
+                physical_endpoint_mapping.append([])
+
+            physical_endpoint_mapping[row_idx].append(endpoint_idx)
+            surface_3d_mapping[endpoint_idx] = surf_idx  # map the endpoint index to an index in surface_3d
+            previous_centroid = centroid
+
+        return physical_endpoint_mapping, surface_3d_mapping
+
+    def generate_antenna_grid(self, min_dist: Union[float, str], debug: bool = False):
+        """
+        Generate a grid of antennas on the abdominal surface with a given distance rounded to the grid-size of the
+        surface of 3cm by 3cm.
+        Return a list of all endpoints with possible shifted starting positions
+
+        :param min_dist: given in mm
+        :param debug: If debug is True, return a list of list -> this corresponds better to the real placement
+                      on the body.
+        :return:
+        """
+        physical_endpoint_mapping, surf_3d_map = self.determine_physical_endpoint_mapping()
+
+        if isinstance(min_dist, str) and min_dist == 'check':
+            # place the antennas in a check pattern
+            antenna_grid = []
+            for last_row in ['odd', 'even']:
+                temp = []
+                for row_idx, row in enumerate(physical_endpoint_mapping):
+                    # take only every second element in the first row
+                    if last_row == 'odd':
+                        if not debug:
+                            temp = temp + row[::2]
+                        else:
+                            temp.append(row[::2])
+                        last_row = 'even'
+                    elif last_row == 'even':
+                        if not debug:
+                            temp = temp + row[1::2]
+                        else:
+                            temp.append(row[1::2])
+                        last_row = 'odd'
+
+                antenna_grid.append(temp)
+        else:
+            # the size of the discrete grid is 30mm by 30mm.
+            # We just need to take every ith row and column:
+            ith = np.ceil(min_dist / 30).astype(int)
+
+            antenna_grid = []
+            for start_row in range(ith):
+                for start_col in range(ith):
+                    temp = []
+                    for row_idx, row in enumerate(physical_endpoint_mapping):
+                        # take only every ith row
+                        if (row_idx + start_row) % ith == 0:
+                            # take only every ith element in each row
+                            if not debug:
+                                temp = temp + row[start_col::ith]
+                            # if debug is True, return a list of list -> this corresponds better to the real placement
+                            # on the body
+                            else:
+                                temp.append(row[start_col::ith])
+
+                    antenna_grid.append(temp)
+
+        return antenna_grid
+
+    def plot_abdominal_endpoint_patches(self, endpoint_colors: Dict = None,
+                                        default_color: Union[Tuple, str] = (1, 1, 1, 1),
+                                        show_endpoint_indices: bool = False,
+                                        hf: plt.Figure = None, ha: plt.Axes = None,
+                                        plotted_patch_list: List = None,
+                                        update_patch_colors: bool = False, **kwargs) -> Tuple[plt.Figure, plt.Axes, List]:
+        """
+        Plot all the abdominal endpoint patches as viewed from the front of the body.
+
+        :param endpoint_colors: Dict containing the colors for each abdominal endpoint.
+                                key = endpoint index, value = color. For all endpoints not in the dict, the
+                                default_color will be used. The color value may be a tuple or list of colors.
+        :param default_color: The default color of the patches
+        :param hf  Figure handle to plot the data in
+        :param ha  Axes handle to plot the data in
+        :return:
+        """
+        model_type = 'trunk'
+
+        color_list = []
+        ymin, zmin = 1e10, 1e10
+        ymax, zmax = 0, 0
+
+        def multisort(xs, specs):
+            # sorting for multiple values in a list.
+            for key, reverse in reversed(specs):
+                xs.sort(key=key, reverse=reverse)
+
+            return xs
+
+        # make sure not to change the original voxel model
+        original_endpoint_list = deepcopy(self.models[model_type].endpoints_abdomen)
+        surface_3d = deepcopy(self.models[model_type].surface_3d)
+        # sort the abdominal endpoints and the patches in ascending z coordinate and ascending y coordinate
+        endpoints = multisort(list(original_endpoint_list),
+                              ((attrgetter('z'), False), (attrgetter('y'), False)))
+        # select all the patches for the endpoints and sort them the same way as the endpoints
+        patches_unsorted = [p for p in surface_3d if Coordinate(p['centroid']) in endpoints]
+        patches = multisort(list(patches_unsorted),
+                            ((lambda p: p['centroid'][2], False), (lambda p: p['centroid'][1], False)))
+
+        # for some models, the z coordinates of the centroids of some of the patches are slightly deviating from
+        # the majority, that needs to be corrected for the algorithm below.
+        z_mapping = {ModelNames.Alvar: {944.9767441860465: 945.4883720930233, 975.1627906976745: 975.6744186046512,
+                                        1005.3488372093024: 1005.8604651162791, 1065.7209302325582: 1066.2325581395348,
+                                        1066.7441860465117: 1066.2325581395348, 1095.906976744186: 1096.418604651163,
+                                        1096.9302325581396: 1096.418604651163, 1156.2790697674418: 1156.7906976744187},
+                     ModelNames.AustinMan_v25_2mm: {1096: 1094, 1066: 1064, 1036: 1034},
+                     ModelNames.AustinMan_v26_1mm: {1010: 1009, 1040: 1039, 1070: 1069, 1100: 1099,
+                                                    1101: 1099, 1130: 1129, 1310: 1309},
+                     ModelNames.AustinWoman_v25_2mm: {1220: 1224, 1226: 1224, 1228: 1224},
+                     ModelNames.AustinWoman_v25_1mm: {905: 904, 935: 934, 937: 934, 995: 994, 1025: 1024, 1055: 1054,
+                                                      1085: 1084,
+                                                      1175: 1174, 1205: 1204},
+                     ModelNames.Donna: {1290: 1300},
+                     ModelNames.Golem: {928: 920, 960: 952, 992: 984, 1016: 1024, 1056: 1048, 1088: 1080, 1120: 1112,
+                                        1152: 1144, 1216: 1208},
+                     ModelNames.Hanako: {802: 804, 892: 894, 952: 954, 982: 984, 1012: 1014, 1076: 1074},
+                     ModelNames.Irene: {1020: 1015, 1050: 1045, 1080: 1075, 1135: 1140, 1170: 1165, 1195: 1200,
+                                        1260: 1255},
+                     ModelNames.Taro: {896: 898},
+                     ModelNames.VisibleHuman: {390: 385, 420: 415, 450: 445, 480: 475, 510: 505, 540: 535, 570: 565,
+                                               600: 595,
+                                               630: 625, 660: 655, 690: 685, 720: 715, 750: 745}}
+
+        # apply the mapping to the centroids of the patches
+        # NOTE: This also temporarily changes the coordinates in self.models[model_type].endpoints_abdomen
+        #       as all entries of endpoints are the sorted entries of self.models[model_type].endpoints_abdomen.
+        if self.name in z_mapping:
+            m = z_mapping[self.name]
+            for p, e in zip(patches, endpoints):
+                if p['centroid'][2] in m.keys():
+                    old_z = p['centroid'][2]
+                    p['centroid'][2] = m[old_z]
+                    e.z = m[old_z]
+
+        distances = squareform(pdist(np.array(endpoints)))
+
+        if not update_patch_colors or plotted_patch_list is None:
+            if hf is None or ha is None:
+                hf, ha = plt.subplots()
+
+            if plotted_patch_list is None:
+                plotted_patch_list = []
+
+            for idx, p in enumerate(patches):
+                verts = p['verts'][0]
+
+                # determine the extent of the plot:
+                ymin = np.minimum(np.amin(verts[:, 1]), ymin)
+                ymax = np.maximum(np.amax(verts[:, 1]), ymax)
+                zmin = np.minimum(np.amin(verts[:, 2]), zmin)
+                zmax = np.maximum(np.amax(verts[:, 2]), zmax)
+
+                # the patches in patches are not sorted in the same order as the "official" list of endpoints.
+                # ==> determine the index of the endpoint
+                endpoint_idx = original_endpoint_list.index(Coordinate(p['centroid']))
+
+                if endpoint_colors is not None and endpoint_idx in endpoint_colors:
+                    color = endpoint_colors[endpoint_idx]
+                else:
+                    color = [default_color]
+
+                # find the six nearest neighbors
+                nearest_idx = tuple(np.argsort(distances[idx, :])[1:7])
+                # all of them with a difference in z of 0 are on the same line
+                a = np.array([[endpoints[i].y - endpoints[idx].y, endpoints[i].z - endpoints[idx].z] for i in nearest_idx])
+                line_neighbors = np.where(a[:, 1] == 0)[0]
+                # the values of b give the y difference to all the points on the same line
+                b = a[line_neighbors, 0]
+                # these values are now used to compute the negative and positive extent from the centroid.
+                # if there is only one neighboring element on the same line, the extent is taken from the 3D vertices of
+                # the original 3D surface.
+                try:
+                    neg_extent = float(np.max(b[np.where(b < 0)])) / 2
+                except ValueError:
+                    # no negative extent -> at the left border
+                    neg_extent = np.min(verts[:, 1]) - p['centroid'][1]
+
+                try:
+                    pos_extent = float(np.min(b[np.where(b > 0)])) / 2
+                except ValueError:
+                    # no positive extend -> at the right border
+                    pos_extent = np.max(verts[:, 1]) - p['centroid'][1]
+
+                # compute width and height and create a rectangle
+                width = pos_extent - neg_extent
+                height = np.max(verts[:, 2]) - np.min(verts[:, 2])
+                lower_left = (p['centroid'][1] + neg_extent, np.min(verts[:, 2]))
+
+                try:
+                    n_colors = len(color)
+                    if isinstance(color, str):
+                        raise TypeError("str color")
+                except TypeError:
+                    color = [color]
+                    n_colors = 1
+
+                if n_colors == 1:
+                    r = Rectangle(lower_left, width, height, fill=True)
+                    r.set_edgecolor('black')
+                    r.set_facecolor(color[0])
+                    plotted_patch_list.append(r)
+                    color_list.append(color[0])
+                elif n_colors == 2:
+                    xy1 = np.array(lower_left)
+                    xy2 = xy1 + np.array([0, height])
+                    xy3 = xy1 + np.array([width, 0])
+                    p1 = plt.Polygon(np.vstack((xy1, xy2, xy3)))
+                    plotted_patch_list.append(p1)
+                    color_list.append(color[0])
+
+                    xy1 = np.array(lower_left + np.array([width, height]))
+                    xy2 = xy1 - np.array([width, 0])
+                    xy3 = xy1 - np.array([0, height])
+                    p2 = plt.Polygon(np.vstack((xy1, xy2, xy3)))
+                    plotted_patch_list.append(p2)
+                    color_list.append(color[1])
+                elif n_colors == 3:
+                    xy1 = np.array(lower_left)
+                    xy2 = xy1 + np.array([0, height])
+                    xy3 = xy1 + np.array([0.5 * width, 0])
+                    p1 = plt.Polygon(np.vstack((xy1, xy2, xy3)))
+                    plotted_patch_list.append(p1)
+                    color_list.append(color[0])
+
+                    xy1 = np.array(lower_left + np.array([width, 0]))
+                    xy2 = xy1 - np.array([0.5 * width, 0])
+                    xy3 = xy1 + np.array([0, height])
+                    p2 = plt.Polygon(np.vstack((xy1, xy2, xy3)))
+                    plotted_patch_list.append(p2)
+                    color_list.append(color[1])
+
+                    xy1 = np.array(lower_left + np.array([width, height]))
+                    xy2 = xy1 - np.array([width, 0])
+                    xy3 = xy1 - np.array([0.5 * width, height])
+                    p3 = plt.Polygon(np.vstack((xy1, xy2, xy3)))
+                    plotted_patch_list.append(p3)
+                    color_list.append(color[2])
+                elif n_colors == 4:
+                    midpoint = lower_left + np.array([0.5 * width, 0.5 * height])
+
+                    xy1 = np.array(lower_left)
+                    xy2 = xy1 + np.array([0, height])
+                    p1 = plt.Polygon(np.vstack((xy1, xy2, midpoint)))
+                    plotted_patch_list.append(p1)
+                    color_list.append(color[0])
+
+                    xy1 = np.array(lower_left)
+                    xy2 = xy1 + np.array([width, 0])
+                    p2 = plt.Polygon(np.vstack((xy1, xy2, midpoint)))
+                    plotted_patch_list.append(p2)
+                    color_list.append(color[1])
+
+                    xy1 = np.array(lower_left) + np.array([width, 0])
+                    xy2 = lower_left + np.array([width, height])
+                    p3 = plt.Polygon(np.vstack((xy1, xy2, midpoint)))
+                    plotted_patch_list.append(p3)
+                    color_list.append(color[2])
+
+                    xy1 = np.array(lower_left) + np.array([0, height])
+                    xy2 = lower_left + np.array([width, height])
+                    p4 = plt.Polygon(np.vstack((xy1, xy2, midpoint)))
+                    plotted_patch_list.append(p4)
+                    color_list.append(color[3])
+                else:
+                    logging.warning(f'{n_colors} different colors per patch not supported')
+
+                # ha.plot(verts[:, 1], verts[:, 2], '-')
+                # ha.plot(p['centroid'][1], p['centroid'][2], 'X', color='black')
+
+        if update_patch_colors:
+            for idx, p in enumerate(patches):
+                # the patches in patches are not sorted in the same order as the "official" list of endpoints.
+                # ==> determine the index of the endpoint
+                endpoint_idx = original_endpoint_list.index(Coordinate(p['centroid']))
+
+                if endpoint_colors is not None and endpoint_idx in endpoint_colors:
+                    color_list.append(endpoint_colors[endpoint_idx])
+                else:
+                    color_list.append(default_color)
+
+            ha.clear()
+
+        our_cmap = ListedColormap(color_list)
+        patches_collection = PatchCollection(plotted_patch_list, cmap=our_cmap, pickradius=1)
+        patches_collection.set_edgecolor('black')
+        patches_collection.set_array(np.arange(len(plotted_patch_list)))
+        ha.add_collection(patches_collection)
+
+        if show_endpoint_indices:
+            for idx, p in enumerate(patches):
+                endpoint_idx = original_endpoint_list.index(Coordinate(p['centroid']))
+                ha.text(p['centroid'][1], p['centroid'][2], f'{endpoint_idx}', None,
+                        horizontalalignment='center',
+                        fontsize='x-small')
+
+        ha.set_xlim(left=ymin, right=ymax)
+        ha.set_ylim(bottom=zmin, top=zmax)
+        ha.axis('equal')
+
+        return hf, ha, plotted_patch_list
 
     def create_3d_model(self, model_type: str, patch_size: Tuple[float, float], patches: Optional[List] = None,
                         coordinates: Optional[np.ndarray] = None):
@@ -1171,6 +1610,234 @@ class VoxelModel:
 
         return coordinates
 
+    def cleanup_3d_model(self, model_type: str, z_max: Union[int, None],
+                         bad_indices: List = None, area_threshold: int = 200, debug_plots: bool = False):
+        """
+        Clean-up the 3d model. Deletes all surface elements smaller than ca. area_threshold mm^2. Moreover, all
+        surface elements with z-coordinate larger than z_max are deleted. Additional artifacts to be deleted can be
+        given in bad_indices.
+
+        :param model_type: name of the model type to use, e.g. 'complete', 'original', or 'trunk'
+        :param z_max: maximum z coordinate in mm, all surface elements (patches) above will be deleted.
+        :param bad_indices: list of indices that should be deleted, e.g. large artifacts (that happens with some models)
+        :param area_threshold: Threshold for the minimum area of a surface element. The area is approximated by the
+                                cross product of two vertices of the patch. Hence, it is not 100 % accurate, but it
+                                seems to work well.
+        :param debug_plots: toggle some debug plots.
+        :return:
+        """
+        area_list = []
+        surf3d_indices = []
+        del_indices = []
+        del_endpoints = []
+
+        # make a list of all surface elements to be deleted in del_indices.
+        for (i, s) in enumerate(self.models[model_type].surface_3d):
+            verts = s['verts'][0]
+            # centroid = s['centroid']
+
+            # remove all vertices above a certain height and skip the rest:
+            if z_max is not None and np.min(verts[:, 2]) > z_max:
+                del_indices.append(i)
+                continue
+
+            # if i is a surface that is an artifact but too big to be detected.
+            if bad_indices is not None and i in bad_indices:
+                del_indices.append(i)
+                continue
+
+            # approximate area of patch
+            a = verts[0] - verts[1]
+            b = verts[2] - verts[1]
+            area = np.linalg.norm(np.cross(a, b))
+            area_list.append(area)
+
+            if area < area_threshold:
+                surf3d_indices.append(('red', None, [i]))
+                del_indices.append(i)
+
+        if debug_plots:
+            hf, ha = self.show_3d_model(model_type, colored_surf3d_indices=surf3d_indices, z_max_limit=z_max)
+            ha.set_title("Endpoints to be deleted in %s" % self.name)
+
+        if del_indices:
+            # list of surface patches to be deleted and kept
+            surface_3d_temp_del = [s for (i, s) in enumerate(self.models[model_type].surface_3d) if i in del_indices]
+            surface_3d_temp = [s for (i, s) in enumerate(self.models[model_type].surface_3d) if i not in del_indices]
+
+            # delete any endpoints on the abdomen that were from a now removed surface element
+            for s in surface_3d_temp_del:
+                centroid = Coordinate(s['centroid'])
+
+                # are there any endpoints in the list of centroids to be deleted?
+                if centroid in self.models[model_type].endpoints_abdomen:
+                    del_endpoints.append(centroid)
+                    logging.debug("found something @ %s" % str(centroid))
+
+            # determine indices of endpoints to be removed
+            endpoint_indies = [self.models[model_type].endpoints_abdomen.index(e) for e in del_endpoints]
+            # first remove the entry from the cluster mapping
+            self.models[model_type].endpoints_abdomen_clustering = np.delete(self.models[model_type].endpoints_abdomen_clustering,
+                                                                             endpoint_indies,
+                                                                             axis=0)
+            logging.debug("Deleted enpdoints %s from endpoints_abdomen_clustering" % str(endpoint_indies))
+            # then from the actual endpoints list
+            for idx in endpoint_indies:
+                del self.models[model_type].endpoints_abdomen[idx]
+                logging.debug("Deleted endpoint %d from endpoints_abdomen" % idx)
+
+            # delete the surface elements from the VoxelModel
+            self.models[model_type].surface_3d = surface_3d_temp
+            logging.info("Deleted %d of %d surface elements from surface_3d" %
+                         (len(surface_3d_temp_del), len(self.models[model_type].surface_3d) + len(surface_3d_temp_del)))
+
+            if debug_plots:
+                import matplotlib.pyplot as plt
+                # show histogram of the area of all surface elements
+                plt.figure()
+                plt.hist(area_list, 'auto')
+                plt.title("%s" % self.name)
+
+                hf, ha = self.show_3d_model(model_type, show_endpoints=True, z_max_limit=z_max)
+                ha.set_title("%s" % self.name)
+
+        else:
+            logging.info("No patches to remove for %s" % self.name)
+
+    def plot_slice(self, view_point: str = 'top', slice_number: int = None, model_type: str = 'trunk',
+                   filter_func: Callable[[np.ndarray], np.ndarray] = None,
+                   add_grid: bool = False, hf: 'plt.Figure' = None, ha: 'plt.Axes' = None, **kwargs) \
+            -> Tuple['plt.Figure', 'plt.Axes']:
+        """
+        Open a plot of a slice of this voxel model. The viewpoint may be 'top', 'front', or 'right'.
+        :param view_point: 'top', 'front', or 'right'
+        :param slice_number: The index of the slice in the given direction to show
+        :param model_type: The model type to use (default: trunk)
+        :return:
+        """
+        import matplotlib.pyplot as plt
+
+        model = self.models[model_type]
+
+        if 'cmap' not in kwargs:
+            cmap = self.colormap
+        else:
+            cmap = kwargs['cmap']
+
+        if hf is None or ha is None:
+            hf, ha = plt.subplots()
+        # draw the slice according to the view_point
+        if view_point == 'top':
+            # calculate the extent of the image and scale it according to the scaling of the model
+            right = max(model.mask['y']) * self.scaling.y + 0.5*self.scaling.y
+            left = model.mask['y'].start * self.scaling.y - 0.5*self.scaling.y
+            bottom = max(model.mask['x']) * self.scaling.x + 0.5*self.scaling.x
+            top = model.mask['x'].start * self.scaling.x - 0.5*self.scaling.x
+            extent = (left, right, bottom, top)
+
+            if slice_number is None:
+                slice_number = model.data.shape[2] // 2
+            im = model[:, :, int(slice_number)]
+            origin = 'upper'
+
+            # invert y axis up->bottom y axis
+            if not ha.yaxis_inverted():
+                ha.invert_yaxis()
+
+            # add some axes labels for better orientation
+            ha.set_xlabel('Y in mm')
+            ha.set_ylabel('X in mm')
+
+        elif view_point == 'right':
+            # calculate the extent of the image depending and scale it according to the scaling of the model
+            right = max(model.mask['x']) * self.scaling.x + 0.5*self.scaling.x
+            left = model.mask['x'].start * self.scaling.x - 0.5*self.scaling.x
+            top = max(model.mask['z']) * self.scaling.z + 0.5*self.scaling.z
+            bottom = model.mask['z'].start * self.scaling.z - 0.5*self.scaling.z
+            extent = (left, right, bottom, top)
+
+            if slice_number is None:
+                slice_number = model.data.shape[1] // 2
+            # the image needs to be rotated by 90° counter clockwise for the correct orientation
+            # This is probably due to the view numpy handles the acces to multidimensional arrays.
+            im = np.rot90(model[:, int(slice_number), :])
+            origin = 'upper'
+
+            # # invert again to get a normal bottom->up y axis
+            # if ha.yaxis_inverted():
+            #     ha.invert_yaxis()
+
+            # add some axes labels for better orientation
+            ha.set_xlabel('X in mm')
+            ha.set_ylabel('Z in mm')
+
+        elif view_point == 'front':
+            # calculate the extent of the image depending and scale it according to the scaling of the model
+            right = max(model.mask['y']) * self.scaling.y + 0.5*self.scaling.y
+            left = model.mask['y'].start * self.scaling.y - 0.5*self.scaling.y
+            top = max(model.mask['z']) * self.scaling.z + 0.5*self.scaling.z
+            bottom = model.mask['z'].start * self.scaling.z - 0.5*self.scaling.z
+            extent = (left, right, bottom, top)
+
+            if slice_number is None:
+                slice_number = model.data.shape[0] // 2
+            # the image needs to be rotated by 90° counter clockwise for the correct orientation
+            # This is probably due to the view numpy handles the acces to multidimensional arrays.
+            im = np.rot90(model[int(slice_number), :, :])
+            origin = 'upper'
+
+            # invert again to get a normal bottom->up y axis
+            # if ha.yaxis_inverted():
+            #     ha.invert_yaxis()
+
+            # add some axes labels for better orientation
+            ha.set_xlabel('Y in mm')
+            ha.set_ylabel('Z in mm')
+
+        v_min = model.min_tissue_id
+        v_max = model.max_tissue_id
+        if filter_func is not None:
+            im = filter_func(im)
+            
+        ha.imshow(im, cmap=cmap, vmin=v_min, vmax=v_max,
+                  extent=extent, origin=origin)
+
+        # draw grid lines at the voxel boundaries
+        if add_grid:
+            if view_point == 'top':
+                x_step = self.scaling.y
+                x_max_index = model.data.shape[1]
+                x_offset = model.mask['y'].start
+                y_step = self.scaling.x
+                y_max_index = model.data.shape[0]
+                y_offset = model.mask['x'].start
+            elif view_point == 'front':
+                x_step = self.scaling.y
+                x_max_index = model.data.shape[1]
+                x_offset = model.mask['y'].start
+                y_step = self.scaling.z
+                y_max_index = model.data.shape[2]
+                y_offset = model.mask['z'].start
+            elif view_point == 'right':
+                x_step = self.scaling.x
+                x_max_index = model.data.shape[0]
+                x_offset = model.mask['x'].start
+                y_step = self.scaling.z
+                y_max_index = model.data.shape[2]
+                y_offset = model.mask['z'].start
+
+            for x in range(x_max_index):
+                x = x + 0.5 + x_offset
+                ha.plot(x*x_step*np.array([1, 1]), [bottom, top], color='tab:gray')
+            for y in range(y_max_index):
+                y = y + 0.5 + y_offset
+                ha.plot([left, right], y*y_step*np.array([1, 1]), color='tab:gray')
+
+            ha.set_xlim(left=left, right=right)
+            ha.set_ylim(top=top, bottom=bottom)
+
+        return hf, ha
+
     @staticmethod
     def list_all_voxel_models() -> List[str]:
         """
@@ -1213,3 +1880,32 @@ class VoxelModel:
         human_model = original_human_model
 
         return human_model
+
+
+class PhysiologicalProperties:
+    def __init__(self, sex: str = None, age: float = None, height: float = None, weight: float = None,
+                 navel: Coordinate = None,
+                 bmi: float = None, waist_circumference_mm: float = None, waist_to_height_ratio: float = None,
+                 abdominal_muscle_to_fat_ratio: float = None):
+        """
+        Set of physiological properties. They are determined by VoxelModelImporter.determine_physiological_properties()
+        while importing the phantoms.
+
+        :param sex: female or male
+        :param age: Age in years
+        :param height: Height in mm
+        :param weight: Weight in kg
+        :param bmi: Body mass index
+        :param waist_circumference_mm: Waist circumference in mm
+        :param waist_to_height_ratio: Waist to height ratio
+        :param abdominal_muscle_to_fat_ratio: Ratio of muscle mass to fat mass in the abdomen
+        """
+        self.sex = sex
+        self.age = age
+        self.weight = weight
+        self.height = height
+        self.navel = navel
+        self.bmi = bmi
+        self.waist_circumference_mm = waist_circumference_mm
+        self.waist_to_height_ratio = waist_to_height_ratio
+        self.abdominal_muscle_to_fat_ratio = abdominal_muscle_to_fat_ratio
