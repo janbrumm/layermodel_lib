@@ -28,7 +28,7 @@ class ProgressBarConfig:
     progress_bar = ProgressBar(widgets=widget)
 
 
-def save_file(content: Any, filename: str, path: str):
+def save_file(content: Any, filename: str, path: str, compressed: bool=False):
     """
     Save a single file with prior check if the file exists already.
 
@@ -39,6 +39,7 @@ def save_file(content: Any, filename: str, path: str):
     """
 
     logging.info('Saving file: %s ' % filename)
+
     path_to_file = join(path, filename)
     if isfile(path_to_file):
         ctrl = input('%s exists already in\n %s.\n'
@@ -81,12 +82,13 @@ def dict_equal(d1: Dict, d2: Dict) -> bool:
             return False
         else:
             value_j = dj[key]
-            if type(value) is dict and type(value_j) is dict:
+
+            if isinstance(value, dict) and isinstance(value_j, dict):
                     # if its again a dictionary -> recursion
                     if not dict_equal(value, value_j):
                         return False
 
-            elif type(value) is np.ndarray and type(value_j) is np.ndarray:
+            elif isinstance(value, np.ndarray) and isinstance(value_j, np.ndarray):
                 if not np.array_equal(value, value_j):
                     return False
 
