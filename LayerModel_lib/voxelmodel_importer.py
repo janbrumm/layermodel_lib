@@ -9,14 +9,20 @@
 #
 import numpy as np
 import logging
+try:
+    import cv2 as cv
+except ModuleNotFoundError as e:
+    logging.warning("Module opencv-python (cv2) not found.")
+
 from typing import Dict, Tuple
 from os import listdir
 from os.path import isfile, join
-
+from scipy.ndimage.morphology import binary_fill_holes
 from typing import Optional
 
 from LayerModel_lib.tissue_properties import TissueProperties
-from LayerModel_lib.voxelmodel import VoxelModel
+from LayerModel_lib.coordinate import Coordinate
+from LayerModel_lib.voxelmodel import VoxelModel, PhysiologicalProperties
 from LayerModel_lib.general import ProgressBarConfig as pb
 
 
@@ -78,13 +84,18 @@ class VoxelModelImporter:
         return outer_shape
 
     @staticmethod
-    def calculate_trunk_model(voxel_model: VoxelModel, model_type: str, z_start: int, z_end: int)\
+    def calculate_trunk_model(voxel_model: VoxelModel, model_type: str, z_start: int, z_end: int,
+                              x_start: int = None, x_end: int = None, y_start: int = None, y_end: int = None)\
             -> Tuple[np.ndarray, Dict]:
         """
         Calculate the trunk model
         the slice z_end will not be included in the final model
         :param voxel_model:      the voxel model that is converted to a trunk only model
         :param model_type:      the model_type that is used as basis for the conversion
+        :param x_start:         start x index
+        :param x_end:           end x index (not included)
+        :param y_start:         start y index
+        :param y_end:           end y index (not included)
         :param z_start:         start slice
         :param z_end:           end slice (not included)
 
@@ -94,8 +105,25 @@ class VoxelModelImporter:
         model_trunk = voxel_model.models[model_type][:, :, z_start:z_end]
         model_trunk = voxel_model.remove_arms(model_trunk)
 
-        mask_trunk = {'x': range(0, model_trunk.shape[0]),
-                      'y': range(0, model_trunk.shape[1]),
+        # There might be holes with ExternalAir inside the model -> replace them with Air
+        bin_model = model_trunk > 0  # create binary model
+        closed_model = binary_fill_holes(bin_model)  # fill all holes inside the model
+        diff_model = np.logical_xor(bin_model, closed_model)  # compute the difference
+        error_idx = np.nonzero(diff_model)  # indices of all holes
+        model_trunk[error_idx] = TissueProperties().get_tissue_id_for_name('Air')[0]  # fill them with Air
+        print("Replaced %d ExternalAir holes with Air.." % (np.sum(diff_model)))
+
+        if x_start is None:
+            x_start = 0
+        if x_end is None:
+            x_end = model_trunk.shape[0]
+        if y_start is None:
+            y_start = 0
+        if y_end is None:
+            y_end = model_trunk.shape[1]
+
+        mask_trunk = {'x': range(x_start, x_end),
+                      'y': range(y_start, y_end),
                       'z': range(z_start, z_end)}
 
         return model_trunk, mask_trunk
