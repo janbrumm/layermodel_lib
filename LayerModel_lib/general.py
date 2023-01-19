@@ -111,21 +111,61 @@ def set_axes_equal(ax):
       :param ax: a matplotlib axis, e.g., as output from plt.gca().
     """
 
-    x_limits = ax.get_xlim3d()
-    y_limits = ax.get_ylim3d()
-    z_limits = ax.get_zlim3d()
+    limits = np.array([
+        ax.get_xlim3d(),
+        ax.get_ylim3d(),
+        ax.get_zlim3d(),
+    ])
 
-    x_range = abs(x_limits[1] - x_limits[0])
-    x_middle = np.mean(x_limits)
-    y_range = abs(y_limits[1] - y_limits[0])
-    y_middle = np.mean(y_limits)
-    z_range = abs(z_limits[1] - z_limits[0])
-    z_middle = np.mean(z_limits)
+    if origin is None:
+        origin = np.mean(limits, axis=1)
+    if radius is None:
+        radius = 0.5 * np.max(np.abs(limits[:, 1] - limits[:, 0]))
 
-    # The plot bounding box is a sphere in the sense of the infinity
-    # norm, hence I call half the max range the plot radius.
-    plot_radius = 0.5*max([x_range, y_range, z_range])
+    set_axes_radius(ax, origin, radius)
 
-    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+class ModelNames:
+    # A list of all available VoxelModels (all the ones for which an import script is available)
+    AustinMan2 = AustinMan_v25_2mm = 'AustinMan_v2.5_2x2x2'
+    AustinMan1 = AustinMan_v26_1mm = 'AustinMan_v2.6_1x1x1'
+    AustinWoman1 = AustinWoman_v25_1mm = 'AustinWoman_v2.5_1x1x1'
+    AustinWoman2 = AustinWoman_v25_2mm = 'AustinWoman_v2.5_2x2x2'
+    Donna = 'Donna'
+    Frank = 'Frank'
+    Golem = 'Golem'
+    Helga = 'Helga'
+    Irene = 'Irene'
+    Katja = 'Katja'
+    VisibleHuman = 'VisibleHuman'
+    Alvar = 'Alvar'
+    Taro = 'Taro'
+    Hanako = 'Hanako'
+
+    # All models that are commonly used for simulations
+    all = [Alvar,
+           AustinMan_v26_1mm,
+           AustinMan_v25_2mm,
+           AustinWoman_v25_1mm,
+           AustinWoman_v25_2mm,
+           Donna,
+           Golem,
+           Hanako,
+           Helga,
+           Irene,
+           Taro,
+           VisibleHuman]
+
+    def __getitem__(self, item):
+        """
+        Use getitem to generate a list of phantoms
+        :param item:
+        :return:
+        """
+        if isinstance(item, str):
+            if item == 'all':
+                return getattr(self, item)
+            else:
+                return [getattr(self, item)]
+        else:
+            return [getattr(self, i) for i in item]
