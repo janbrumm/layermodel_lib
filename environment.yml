@@ -3,7 +3,7 @@ channels:
   - defaults
   - anaconda
 dependencies:
-  - matplotlib
+  - matplotlib=3.0.3
   - networkx
   - numpy
   - pip
