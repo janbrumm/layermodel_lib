@@ -34,7 +34,7 @@ s = vm.get_random_startpoints('trunk', 'GIcontents', 10)
 lm = LayerModel(vm, s[1], e[1])
 
 # compute the transfer function
-transfer_function, f = lm.S21()
+transfer_function, f = lm.transfer_function()
 
 # plot the magnitude
 plt.plot(f/1e9, 20*np.log10(np.abs(transfer_function)))

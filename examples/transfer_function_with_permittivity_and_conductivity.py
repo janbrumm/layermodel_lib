@@ -40,4 +40,4 @@ lm = LayerModel.create_from_dict({'Air': None, 'TX': None, 'Solid1': 10, 'Solid2
 
 lm.print_info()
 # calculate the transfer function at 1e9 Hz
-(transfer_function, frequency) = lm.S21(f_start=1e9, f_end=1e9, n_samples=1)
+(transfer_function, frequency) = lm.transfer_function(f_start=1e9, f_end=1e9, n_samples=1)

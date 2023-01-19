@@ -25,7 +25,7 @@ lm = LayerModel.create_from_dict({'Air': None, 'Fat': 200, 'TX': None, 'Muscle':
 lm.print_info()
 
 # calculate the transfer function for S21 at 1e9 Hz
-(transfer_function, frequency) = lm.S21(f_start=3.1e9, f_end=4.8e9, n_samples=100)
+(transfer_function, frequency) = lm.transfer_function(f_start=3.1e9, f_end=4.8e9, n_samples=100)
 
 # plot the magnitude
 plt.plot(frequency/1e9, 20*np.log10(np.abs(transfer_function)))

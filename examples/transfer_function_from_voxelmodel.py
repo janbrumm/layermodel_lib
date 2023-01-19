@@ -38,7 +38,7 @@ lm.print_info()
 
 # Calculate the transfer function for S21 (square root of transmitted power) from 0 to 10 GHz with 1024 samples,
 # the default direction is 'start->end'
-(transfer_function, frequency) = lm.S21(f_start=3.1e9, f_end=4.8e9, n_samples=1024)
+(transfer_function, frequency) = lm.transfer_function(f_start=3.1e9, f_end=4.8e9, n_samples=1024)
 
 # plot the magnitude
 hf, ha = plt.subplots(nrows=2)
