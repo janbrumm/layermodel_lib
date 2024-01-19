@@ -7,13 +7,13 @@
 
 This repository provides a library to calculate transfer functions, path loss, channel capacity and various 
 other properties of in-body to on-body ultra wideband commincation using the layer modeling approach as introduced 
-in [BB17]. Instead of simulating the wave propagation inside the human body using numerical methods, the transmission 
-form transmitter TX to receiver RX is simplified by a plane wave travelling through a multi-layered dielectric.
+in [Bru24]. Instead of simulating the wave propagation inside the human body using numerical methods, the transmission 
+from transmitter TX to receiver RX is simplified by a plane wave travelling through a multi-layered dielectric.
 The layers of this multi-layered dielectric can be determined from arbitrary voxel models.  
 
-It was shown in [BB17b], [BKB19], and [BB19] that the results from this layer modeling approach fit well to the results that 
+It was shown in [Bru24], [BB17b], [BKB19], and [BB19] that the results from this layer modeling approach fit well to the results that 
 have been published in the literature so far for similar transmission setups. For more details on this modeling
-technique refer to [BB17b] or [TT+12]. The actual results in [BB17a], [BB17b], [BB17c] and [BKB19] were computed using MATLAB. 
+technique refer to [Bru24]. The actual results in [BB17a], [BB17b], [BB17c] and [BKB19] were computed using MATLAB. 
 `LayerModel_lib` is a Python implementation of the same functionality. 
 
 The results from [BB19] were simulated using this library and the resulting data 
@@ -23,8 +23,8 @@ can be found in int/in-body/ismict2019>.
 This code is distributed under [MIT license](LICENSE). When using this code or parts of it for publications or research
 please cite this repository as:
 
-[Bru19] J.-C. Brumm, "LayerModel_lib. A Python toolkit to compute the transmission behaviour of plane 
-electromagnetic waves through human tissue." DOI: 10.5281/zenodo.3507610 
+[Bru23] J.-C. Brumm, "LayerModel_lib. A Python toolkit to compute the transmission behaviour of plane 
+electromagnetic waves through human tissue." DOI: 10.5281/zenodo.10459541 
 
 ## Installation and Requirements
 1. Download and install at least Python 3.6
@@ -79,6 +79,9 @@ transfer_function, f = lm.transfer_function()
 More examples can be found in the [examples](examples/README.md) folder.
 
 ## References 
+
+[Bru24] J.-C. Brumm, "Channel Modeling and Performance Analysis of Ultra Wideband In-Body Communication", 
+PhD thesis, TU Hamburg, 2024, https://doi.org/10.15480/882.9047
 
 [BB19] J.-C. Brumm, and G. Bauch, “Influence of Physiological Properties on the
 Channel Capacity for Ultra Wideband In-Body Communication,” in *13th International Symposium on Medical 

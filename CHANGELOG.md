@@ -4,6 +4,12 @@ All notable changes to the **LayerModel_lib** project will be documented in this
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+##  [2.4.0] 
+### Changed
+- add all dielectric properties to install using MANIFEST.in
+- update README for published version of thesis
+- some cosmetic changes for plotting the abdominal surfaces of the phantoms
+
 ##  [2.3.0] - 2023-01-19
 ### Added
 - Polynomial Channel Model and its parameters for all phantoms and TX/RX locations

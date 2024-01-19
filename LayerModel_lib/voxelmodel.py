@@ -674,13 +674,15 @@ class VoxelModel:
                       show_clusters: Optional[bool] = False,
                       colored_endpoint_indices: List[Tuple] = None,
                       colored_surf3d_indices: List[Tuple] = None,
+                      default_face_color: Tuple = (1, 1, 1, 0.5),
                       show_surf3d_indices: bool = False,
                       show_endpoint_indices: bool = False,
                       x_min_limit: float = None, x_max_limit: float = None,
                       y_min_limit: float = None, y_max_limit: float = None,
                       z_min_limit: float = None, z_max_limit: float = None,
                       plot_origin: np.ndarray = None, plot_radius: float = None,
-                      transformation_vector: Coordinate = None) -> Tuple:
+                      transformation_vector: Coordinate = None,
+                      axes_off = True) -> Tuple:
         """
         Open a plot showing the 3D model of the model_type given.
 
@@ -695,6 +697,7 @@ class VoxelModel:
         :param colored_surf3d_indices:  same as 'colored_endpoint_indices' only that indices into
                                         model['trunk'].surface_3d are given.
         :param show_surf3d_indices: Show the index of each surface patch
+        :param default_face_color: Default color of the patches given as (r, g, b, alpha) tuple.
         :param x_max_limit: maximum x value to plot
         :param x_min_limit: minimum x value to plot
         :param y_max_limit: maximum y value to plot
@@ -704,6 +707,7 @@ class VoxelModel:
         :param plot_origin: origin for setting axis scaling equal -> handed over to set_axes_equal()
         :param plot_radius: radius for setting axis scaling equal -> handed over to set_axes_equal()
         :param transformation_vector: a vector giving the translation applied to all patches before drawing
+        :param axes_off: turns axes of the figure off by default
         :return:
         """
 
@@ -734,12 +738,11 @@ class VoxelModel:
                              if index in indices]
                 colored_surf3d.append((color, hatch, endpoints))
 
-        # the default face color:
-        default_face_color = (1, 1, 1, 0.5)
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.set_aspect('equal')
+        # ax.set_aspect('equal')
+        ax.set_box_aspect((1, 1, 1))
 
         # save a list of min. and max. X, Y, Z coordinates
         x_min, y_min, z_min = [1e10] * 3
@@ -902,7 +905,8 @@ class VoxelModel:
         ax.elev = 19
         ax.azim = 10
         ax.dist = 6
-        ax.set_axis_off()
+        if axes_off:
+            ax.set_axis_off()
         return fig, ax
 
     def determine_physical_endpoint_mapping(self):
@@ -1071,7 +1075,7 @@ class VoxelModel:
         Plot all the abdominal endpoint patches as viewed from the front of the body.
 
         :param endpoint_colors: Dict containing the colors for each abdominal endpoint.
-                                key = endpoint index, value = color. For all endpoints not in the dict, the
+                                key = endpoint index, value = list of colors. For all endpoints not in the dict, the
                                 default_color will be used. The color value may be a tuple or list of colors.
         :param default_color: The default color of the patches
         :param hf  Figure handle to plot the data in

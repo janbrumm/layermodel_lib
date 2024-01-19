@@ -1,5 +1,8 @@
 include LayerModel_lib/ColeColeConstants.TissueProperties
 include LayerModel_lib/PhantomColormap.npy
+include LayerModel_lib/channel_model.h5
+include LayerModel_lib/tissue_properties_fornesleal.json
+include LayerModel_lib/tissue_properties_gabriel.json
 include README.md
 recursive-include examples *.py *.md
 recursive-include phantom_import *.py *.md
