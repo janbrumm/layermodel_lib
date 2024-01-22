@@ -130,7 +130,7 @@ del vm.models['original']
 del vm.models['complete']
 
 # compute physiological properties
-vm = importer.determine_physiological_sproperties(vm, navel=Coordinate([246, 335, 1088]),
+vm = importer.determine_physiological_properties(vm, navel=Coordinate([246, 335, 1088]),
                                                  height=176, weight=72, age=None, sex='male')
 
 # save the model

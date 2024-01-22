@@ -2,29 +2,34 @@
 
 There are 2 main sources for the models in this project.
 
-1. [Helmholtz Zentrum München Virtual Human Database](https://www.helmholtz-muenchen.de/irm/service/virtual-human-download-portal/virtual-human-database/index.html)
-2. The University of Texas: [AustinMan](http://web2.corral.tacc.utexas.edu/AustinManEMVoxels/AustinMan/index.html) and [AustinWoman](http://web.corral.tacc.utexas.edu/AustinManEMVoxels/AustinWoman/index.html)
+1. AustinMan & AustinWoman: The University of Texas: [AustinMan](http://web2.corral.tacc.utexas.edu/AustinManEMVoxels/AustinMan/index.html) and [AustinWoman](http://web.corral.tacc.utexas.edu/AustinManEMVoxels/AustinWoman/index.html)
+3. Alvar: Aalto University https://version.aalto.fi/gitlab/ilaakso/alvar
+4. Taro & Hanako: NICT Biomedical EMC https://bioemc.net/bio/en-data-offer/?page_id=27
+5. All others: [Helmholtz Zentrum München Virtual Human Database](https://www.helmholtz-muenchen.de/irm/service/virtual-human-download-portal/virtual-human-database/index.html) (not available anymore)
 
 ## List of all available Phantoms
 The following table gives an overview over the properties of the different models. The upper 12 are available from the Helmholtz Zentrum München and the last two from the University of Texas.
 
 
-| Name |Import Available |  Sex | Age | Size (cm) | Weight (kg) | Resolution |
-|----- |---- | ---- |---- |---------- |-------------| -----------|
-|Baby  | :heavy\_multiplication\_x: | W    | 8w  | 57 | 4.2 | |
-|Child | :heavy\_multiplication\_x: | W    | 7   | 115| 21.7 | |
-|Jo    | :heavy\_multiplication\_x: | W    | 8   | 130|34   | |
-|Helga | :heavy\_check\_mark: | W    |26   | 170|81 | $`(0.98\cdot 0.98\cdot 10)mm^3 `$ |
-|Irene | :heavy\_check\_mark: | W    | 32  | 163|51| $` (1.875\cdot 1.875\cdot 5)mm^3`$ |
-|VisibleHuman | :heavy\_check\_mark: | M | 38 |180 | 103 | $`(0.91 \cdot 0.94 \cdot 5) mm^3`$ |
-|Golem (only Small Intestine labeled, w/o the contents) | :heavy\_check\_mark: | M | 38 |176 | 69 | $`(2.08 \cdot 2.08 \cdot 8) mm^3`$ |
-|Donna | :heavy\_check\_mark: | W | 40 | 170 | 70 | $`(1.875 \cdot 1.875 \cdot 10) mm^3`$ |
-|Frank [^1] | :heavy\_check\_mark: | M | 48 | n.A. | n.A.| $` (0.742188\cdot 0.742188\cdot 5)mm^3`$ 3D Model not complete. |
-|Katja [^2] | :heavy\_check\_mark: | W | n.A. | n.A. | n.A. | $` (1.775\cdot 1.775\cdot 4.84)mm^3`$ |
-|ADAM | :heavy\_multiplication\_x: | M |  n.A. | n.A. | n.A. | $`(1.6 \cdot 1.6\cdot 2)mm^3`$ |
-|EVA | :heavy\_multiplication\_x: | W |  n.A. | n.A. | n.A. | |
-|AustinMan | :heavy\_check\_mark: :heavy\_check\_mark: :heavy\_multiplication\_x: :heavy\_multiplication\_x: | M | 38 | 180 | 106.2 | $`(1\cdot 1\cdot 1)mm^3, (2\cdot 2\cdot 2)mm^3, (4\cdot 4\cdot 4)mm^3, (8\cdot 8\cdot 8)mm^3`$ |
-|AustinWoman | :heavy\_check\_mark: :heavy\_check\_mark: :heavy\_multiplication\_x: :heavy\_multiplication\_x: | W | 59 | 173 | 84.8 | $`(1\cdot 1\cdot 1)mm^3, (2\cdot 2\cdot 2)mm^3, (4\cdot 4\cdot 4)mm^3, (8\cdot 8\cdot 8)mm^3`$ |
+| Name                                                   |Import Available | Sex | Age  | Size (cm) | Weight (kg) | Resolution                                                                                     |
+|--------------------------------------------------------|---- |-----|------|-----------|-------------|------------------------------------------------------------------------------------------------|
+| Baby                                                   | :heavy\_multiplication\_x: | W   | 8w   | 57        | 4.2         |                                                                                                |
+| Child                                                  | :heavy\_multiplication\_x: | W   | 7    | 115       | 21.7        |                                                                                                |
+| Jo                                                     | :heavy\_multiplication\_x: | W   | 8    | 130       | 34          |                                                                                                |
+| Helga                                                  | :heavy\_check\_mark: | W   | 26   | 170       | 81          | $`(0.98\cdot 0.98\cdot 10)mm^3 `$                                                              |
+| Irene                                                  | :heavy\_check\_mark: | W   | 32   | 163       | 51          | $` (1.875\cdot 1.875\cdot 5)mm^3`$                                                             |
+| VisibleHuman                                           | :heavy\_check\_mark: | M   | 38   | 180       | 103         | $`(0.91 \cdot 0.94 \cdot 5) mm^3`$                                                             |
+| Golem (only Small Intestine labeled, w/o the contents) | :heavy\_check\_mark: | M   | 38   | 176       | 69          | $`(2.08 \cdot 2.08 \cdot 8) mm^3`$                                                             |
+| Donna                                                  | :heavy\_check\_mark: | W   | 40   | 170       | 70          | $`(1.875 \cdot 1.875 \cdot 10) mm^3`$                                                          |
+| Frank [^1]                                             | :heavy\_check\_mark: | M   | 48   | n.A.      | n.A.        | $` (0.742188\cdot 0.742188\cdot 5)mm^3`$ 3D Model not complete.                                |
+| Katja [^2]                                             | :heavy\_check\_mark: | W   | n.A. | n.A.      | n.A.        | $` (1.775\cdot 1.775\cdot 4.84)mm^3`$                                                          |
+| ADAM                                                   | :heavy\_multiplication\_x: | M   | n.A. | n.A.      | n.A.        | $`(1.6 \cdot 1.6\cdot 2)mm^3`$                                                                 |
+| EVA                                                    | :heavy\_multiplication\_x: | W   | n.A. | n.A.      | n.A.        |                                                                                                |
+| AustinMan                                              | :heavy\_check\_mark: :heavy\_check\_mark: :heavy\_multiplication\_x: :heavy\_multiplication\_x: | M   | 38   | 180       | 106.2       | $`(1\cdot 1\cdot 1)mm^3, (2\cdot 2\cdot 2)mm^3, (4\cdot 4\cdot 4)mm^3, (8\cdot 8\cdot 8)mm^3`$ |
+| AustinWoman                                            | :heavy\_check\_mark: :heavy\_check\_mark: :heavy\_multiplication\_x: :heavy\_multiplication\_x: | W   | 59   | 173       | 84.8        | $`(1\cdot 1\cdot 1)mm^3, (2\cdot 2\cdot 2)mm^3, (4\cdot 4\cdot 4)mm^3, (8\cdot 8\cdot 8)mm^3`$ |
+| Alvar                                                  | :heavy\_check\_mark: | M   | -    | 176       | 72          | $`(0.512\cdot 0.512\cdot 0.512)mm^3`$                                                          |
+| Taro                                                   | :heavy\_check\_mark: | M   | 22   | 173       | 65          | $`(2\cdot 2\cdot 2)mm^3`$                                                                      |
+| Hanako                                                 | :heavy\_check\_mark: | W   | 22   | 160       | 53          | $`(2\cdot 2\cdot 2)mm^3`$                                                              |
 
 [^1]: The model Frank is not complete in the transverse plane i.e., parts of the abdomen are cut off. 
 [^2]: Katja is pregnant and for some reason the fat tissue is labeled as body fluid. 
